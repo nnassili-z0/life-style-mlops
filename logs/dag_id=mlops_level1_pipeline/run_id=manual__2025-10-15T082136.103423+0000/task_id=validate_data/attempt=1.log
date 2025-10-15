@@ -1,0 +1,59 @@
+[2025-10-15T08:21:39.079+0000] {taskinstance.py:1956} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: mlops_level1_pipeline.validate_data manual__2025-10-15T08:21:36.103423+00:00 [queued]>
+[2025-10-15T08:21:39.090+0000] {taskinstance.py:1956} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: mlops_level1_pipeline.validate_data manual__2025-10-15T08:21:36.103423+00:00 [queued]>
+[2025-10-15T08:21:39.091+0000] {taskinstance.py:2170} INFO - Starting attempt 1 of 2
+[2025-10-15T08:21:39.107+0000] {taskinstance.py:2191} INFO - Executing <Task(PythonOperator): validate_data> on 2025-10-15 08:21:36.103423+00:00
+[2025-10-15T08:21:39.116+0000] {standard_task_runner.py:60} INFO - Started process 280 to run task
+[2025-10-15T08:21:39.121+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'mlops_level1_pipeline', 'validate_data', 'manual__2025-10-15T08:21:36.103423+00:00', '--job-id', '3', '--raw', '--subdir', 'DAGS_FOLDER/mlops_level1_pipeline.py', '--cfg-path', '/tmp/tmphjqkh05m']
+[2025-10-15T08:21:39.126+0000] {standard_task_runner.py:88} INFO - Job 3: Subtask validate_data
+[2025-10-15T08:21:39.233+0000] {task_command.py:423} INFO - Running <TaskInstance: mlops_level1_pipeline.validate_data manual__2025-10-15T08:21:36.103423+00:00 [running]> on host 170efc604ff1
+[2025-10-15T08:21:39.382+0000] {taskinstance.py:2480} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='naoufal' AIRFLOW_CTX_DAG_ID='mlops_level1_pipeline' AIRFLOW_CTX_TASK_ID='validate_data' AIRFLOW_CTX_EXECUTION_DATE='2025-10-15T08:21:36.103423+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-10-15T08:21:36.103423+00:00'
+[2025-10-15T08:21:39.385+0000] {mlops_level1_pipeline.py:37} INFO - Validating dataset with Pandera...
+[2025-10-15T08:21:39.397+0000] {logging_mixin.py:188} WARNING - /home/***/.local/lib/python3.9/site-packages/pandera/_pandas_deprecated.py:149 FutureWarning: Importing pandas-specific classes and functions from the
+top-level pandera module will be **removed in a future version of pandera**.
+If you're using pandera to validate pandas objects, we highly recommend updating
+your import:
+
+```
+# old import
+import pandera as pa
+
+# new import
+import pandera.pandas as pa
+```
+
+If you're using pandera to validate objects from other compatible libraries
+like pyspark or polars, see the supported libraries section of the documentation
+for more information on how to import pandera:
+
+https://pandera.readthedocs.io/en/stable/supported_libraries.html
+
+To disable this warning, set the environment variable:
+
+```
+export DISABLE_PANDERA_IMPORT_WARNING=True
+```
+[2025-10-15T08:21:39.402+0000] {taskinstance.py:2698} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/taskinstance.py", line 433, in _execute_task
+    result = execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 199, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 216, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/mlops_level1_pipeline.py", line 49, in validate_data
+    df = pd.read_csv(DATA_PATH)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/parsers/readers.py", line 948, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/parsers/readers.py", line 611, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/parsers/readers.py", line 1448, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/parsers/readers.py", line 1705, in _make_engine
+    self.handles = get_handle(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandas/io/common.py", line 863, in get_handle
+    handle = open(
+FileNotFoundError: [Errno 2] No such file or directory: 'data/raw/Final_data.csv'
+[2025-10-15T08:21:39.418+0000] {taskinstance.py:1138} INFO - Marking task as UP_FOR_RETRY. dag_id=mlops_level1_pipeline, task_id=validate_data, execution_date=20251015T082136, start_date=20251015T082139, end_date=20251015T082139
+[2025-10-15T08:21:39.435+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 3 for task validate_data ([Errno 2] No such file or directory: 'data/raw/Final_data.csv'; 280)
+[2025-10-15T08:21:39.457+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2025-10-15T08:21:39.486+0000] {taskinstance.py:3280} INFO - 0 downstream tasks scheduled from follow-on schedule check
