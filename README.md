@@ -27,3 +27,83 @@ The pipeline includes:
    ```bash
    git clone https://github.com/nnassili-z0/life-style-mlops.git
    cd life-style-mlops
+   ```
+2. Copy the example environment file and update credentials:
+   ```bash
+   cp .env.example .env
+   ```
+3. Build and start Airflow with Docker Compose:
+   ```bash
+   docker-compose -f docker-compose-airflow.yml up --build
+   ```
+4. Access Airflow UI at [localhost:8080](http://localhost:8080) (admin/admin)
+5. Trigger the `mlops_level1_pipeline` DAG to run the full pipeline
+
+## 📊 Pipeline Stages
+The Airflow DAG automates the following steps:
+- **Data Ingestion**: Download raw data from Kaggle.
+- **Summary Statistics**: Compute and log descriptive statistics for the raw dataset (mean, std, min, max, missing values, feature types).
+- **Data Validation**: Validate schema and data integrity using Pandera.
+- **Preprocessing**: Clean and encode features, save artifacts with timestamps.
+- **Data Splitting**: Split data into train/test sets, save splits as artifacts.
+- **Model Training**: Train a RandomForest model, save model artifact.
+- **Model Evaluation**: Evaluate model performance (classification report, F1-score), save metrics.
+- **Model Validation**: Ensure model meets minimum performance criteria.
+- **Model Registration**: Register model and metrics in MLflow for traceability.
+
+## 🏗️ Level 1 MLOps Architecture
+This project implements a Level 1 MLOps architecture:
+- End-to-end automation of the ML lifecycle (see attached architecture diagram)
+- Reproducibility and traceability with MLflow
+- Scalable orchestration using Airflow and Docker
+- CI/CD integration (GitLab pipelines)
+- Monitoring and observability (Prometheus, Grafana planned)
+- Containerization and future Kubernetes support
+- Feature engineering and transformation pipelines (DBT planned)
+- Model explainability, A/B testing, and feature store integration (future)
+
+## 🧩 ML Use Cases
+- Classification: Predict lifestyle categories
+- Regression: Estimate continuous outcomes
+- Clustering: Group individuals for recommendations
+- Deep Learning: For expanded datasets
+- Anomaly Detection: Identify outliers
+
+## 🔜 Next Steps
+- Implement feature engineering and model training pipelines
+- Integrate MLflow tracking and model registry
+- Set up automated CI/CD workflows
+- Deploy models via REST API or batch inference
+- Add monitoring dashboards and alerting
+- Transition to Kubernetes for scalability
+
+## 📁 Folder Structure
+- `dags/`: Airflow DAGs for ETL, ML pipeline
+- `data/`: Raw and processed datasets
+- `demo_artifacts/`: Model and metrics artifacts
+- `src/`: Source code for custom operators, utilities
+- `logs/`: Airflow and pipeline logs
+- `notebooks/`: Exploratory analysis and prototyping
+- `tests/`: Unit and integration tests
+
+## 🔒 Security
+- Sensitive credentials are managed via `.env` (not committed)
+- Example `.env.example` provided for safe sharing
+- Fernet key used for Airflow metadata encryption
+
+## 📝 How to Run
+1. Build and start Airflow with Docker Compose:
+   ```bash
+   docker-compose -f docker-compose-airflow.yml up --build
+   ```
+2. Access Airflow UI at [localhost:8080](http://localhost:8080) (admin/admin)
+3. Trigger the `mlops_level1_pipeline` DAG to run the full pipeline
+
+## 📦 Requirements
+All dependencies are listed in `requirements.txt`. Install with:
+```bash
+pip install -r requirements.txt
+```
+
+## 🖼️ Architecture Diagram
+See the attached PNG for the full Level 1 MLOps architecture.
