@@ -1,0 +1,32 @@
+[2025-10-15T08:43:29.940+0000] {taskinstance.py:1956} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: mlops_level1_pipeline.download_dataset manual__2025-10-15T08:43:26.997121+00:00 [queued]>
+[2025-10-15T08:43:29.952+0000] {taskinstance.py:1956} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: mlops_level1_pipeline.download_dataset manual__2025-10-15T08:43:26.997121+00:00 [queued]>
+[2025-10-15T08:43:29.953+0000] {taskinstance.py:2170} INFO - Starting attempt 1 of 4
+[2025-10-15T08:43:29.981+0000] {taskinstance.py:2191} INFO - Executing <Task(BashOperator): download_dataset> on 2025-10-15 08:43:26.997121+00:00
+[2025-10-15T08:43:29.993+0000] {standard_task_runner.py:60} INFO - Started process 202 to run task
+[2025-10-15T08:43:29.999+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'mlops_level1_pipeline', 'download_dataset', 'manual__2025-10-15T08:43:26.997121+00:00', '--job-id', '2', '--raw', '--subdir', 'DAGS_FOLDER/mlops_level1_pipeline.py', '--cfg-path', '/tmp/tmphgnf0dod']
+[2025-10-15T08:43:30.004+0000] {standard_task_runner.py:88} INFO - Job 2: Subtask download_dataset
+[2025-10-15T08:43:30.154+0000] {task_command.py:423} INFO - Running <TaskInstance: mlops_level1_pipeline.download_dataset manual__2025-10-15T08:43:26.997121+00:00 [running]> on host cd6417cd872f
+[2025-10-15T08:43:30.306+0000] {taskinstance.py:2480} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='naoufal' AIRFLOW_CTX_DAG_ID='mlops_level1_pipeline' AIRFLOW_CTX_TASK_ID='download_dataset' AIRFLOW_CTX_EXECUTION_DATE='2025-10-15T08:43:26.997121+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-10-15T08:43:26.997121+00:00'
+[2025-10-15T08:43:30.308+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2025-10-15T08:43:30.310+0000] {subprocess.py:75} INFO - Running command: ['/usr/bin/bash', '-c', 'python /opt/***/data/ingest_kaggle.py']
+[2025-10-15T08:43:30.341+0000] {subprocess.py:86} INFO - Output:
+[2025-10-15T08:43:31.477+0000] {subprocess.py:93} INFO - 2025-10-15 08:43:31,476 - INFO - Downloading dataset 'jockeroika/life-style-data' to data/raw...
+[2025-10-15T08:43:31.707+0000] {subprocess.py:93} INFO - /home/***/.local/lib/python3.9/site-packages/urllib3/connectionpool.py:1061: InsecureRequestWarning: Unverified HTTPS request is being made to host 'www.kaggle.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/1.26.x/advanced-usage.html#ssl-warnings
+[2025-10-15T08:43:31.708+0000] {subprocess.py:93} INFO -   warnings.warn(
+[2025-10-15T08:43:32.100+0000] {subprocess.py:93} INFO - /home/***/.local/lib/python3.9/site-packages/urllib3/connectionpool.py:1061: InsecureRequestWarning: Unverified HTTPS request is being made to host 'storage.googleapis.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/1.26.x/advanced-usage.html#ssl-warnings
+[2025-10-15T08:43:32.101+0000] {subprocess.py:93} INFO -   warnings.warn(
+[2025-10-15T08:43:33.077+0000] {subprocess.py:93} INFO - 2025-10-15 08:43:33,077 - INFO - Files in zip archive: ['Final_data.csv', 'meal_metadata.csv']
+[2025-10-15T08:43:33.165+0000] {subprocess.py:93} INFO - 2025-10-15 08:43:33,164 - INFO - Download and extraction complete.
+[2025-10-15T08:43:33.478+0000] {subprocess.py:93} INFO - Dataset head:
+[2025-10-15T08:43:33.479+0000] {subprocess.py:93} INFO -      Age  Gender  ...  Burns Calories (per 30 min)_bc  Burns_Calories_Bin
+[2025-10-15T08:43:33.480+0000] {subprocess.py:93} INFO - 0  34.91    Male  ...                    7.260425e+19              Medium
+[2025-10-15T08:43:33.481+0000] {subprocess.py:93} INFO - 1  23.37  Female  ...                    1.020506e+20                High
+[2025-10-15T08:43:33.482+0000] {subprocess.py:93} INFO - 2  33.20  Female  ...                    1.079607e+20                High
+[2025-10-15T08:43:33.482+0000] {subprocess.py:93} INFO - 3  38.69  Female  ...                    8.987921e+19                High
+[2025-10-15T08:43:33.483+0000] {subprocess.py:93} INFO - 4  45.09    Male  ...                    5.264685e+19                 Low
+[2025-10-15T08:43:33.484+0000] {subprocess.py:93} INFO - 
+[2025-10-15T08:43:33.485+0000] {subprocess.py:93} INFO - [5 rows x 54 columns]
+[2025-10-15T08:43:33.584+0000] {subprocess.py:97} INFO - Command exited with return code 0
+[2025-10-15T08:43:33.622+0000] {taskinstance.py:1138} INFO - Marking task as SUCCESS. dag_id=mlops_level1_pipeline, task_id=download_dataset, execution_date=20251015T084326, start_date=20251015T084329, end_date=20251015T084333
+[2025-10-15T08:43:33.678+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 0
+[2025-10-15T08:43:33.725+0000] {taskinstance.py:3280} INFO - 0 downstream tasks scheduled from follow-on schedule check

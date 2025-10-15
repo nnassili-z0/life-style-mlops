@@ -6,3 +6,8 @@ mlflow
 requests
 python-dotenv
 joblib
+apache-airflow
+joblib
+mlflow
+scikit-learn
+pandera
