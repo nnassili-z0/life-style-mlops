@@ -1,64 +1,76 @@
 version: '3.8'
 
+# Minimal, local-development docker-compose for Airflow (LocalExecutor).
+# Loads variables from .env in repo root.
+
 x-airflow-common:
   &airflow-common
   build:
     context: .
     dockerfile: ./docker/Dockerfile_new
+  env_file:
+    - ./.env
   environment:
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
-    AIRFLOW__CORE__FERNET_KEY: 'i_tT3m1b0A1pXw_yZz-aBcDeFgHiJkLmNoPqRsTuVw='
+    AIRFLOW__CORE__FERNET_KEY: ${FERNET_KEY}
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
   volumes:
     - ./dags:/opt/airflow/dags
-    - ./data:/opt/airflow/data
-    - ./demo_artifacts:/opt/airflow/demo_artifacts
-    - ./src:/opt/airflow/src
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
     - ./requirements.txt:/requirements.txt
-  depends_on:
-    - postgres
+  networks:
+    - airflow_net
 
 services:
   postgres:
     image: postgres:13
+    env_file:
+      - ./.env
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
+    networks:
+      - airflow_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   airflow-init:
     <<: *airflow-common
-    entrypoint: >
-      bash -c "
-        airflow db init &&
-        airflow users create --username admin --password admin --firstname Naoufal --lastname NASSILI --role Admin --email admin@example.com
-      "
+    env_file:
+      - ./.env
+    entrypoint: ["bash", "-c", "airflow db upgrade && airflow users create --username ${_AIRFLOW_WWW_USER_USERNAME} --password ${_AIRFLOW_WWW_USER_PASSWORD} --firstname Admin --lastname User --role Admin --email admin@example.com || true"]
     depends_on:
       - postgres
 
   webserver:
     <<: *airflow-common
-    entrypoint: >
-      bash -c "
-        airflow webserver
-      "
+    env_file:
+      - ./.env
     ports:
       - "8080:8080"
+    entrypoint: ["bash", "-c", "airflow webserver"]
     depends_on:
       - airflow-init
 
   scheduler:
     <<: *airflow-common
-    entrypoint: >
-      bash -c "
-        airflow scheduler
-      "
+    env_file:
+      - ./.env
+    entrypoint: ["bash", "-c", "airflow scheduler"]
     depends_on:
       - airflow-init
+
+networks:
+  airflow_net:
 
 volumes:
   postgres-db-volume:
