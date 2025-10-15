@@ -1,6 +1,6 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import logging
 import os
@@ -21,7 +21,8 @@ MODEL_PATH = "src/models/model.pkl"
 default_args = {
     "owner": "naoufal",
     "start_date": datetime(2024, 1, 1),
-    "retries": 1
+    "retries": 3,
+    "retry_delay": timedelta(minutes=1),
 }
 
 # DAG definition
@@ -107,6 +108,13 @@ with DAG(
         logging.info("Model registered with MLflow.")
 
     # Task definitions
+    from airflow.operators.bash import BashOperator
+
+    t0 = BashOperator(
+        task_id="download_dataset",
+        bash_command="python /opt/airflow/data/ingest_kaggle.py",
+    )
+
     t1 = PythonOperator(task_id="validate_data", python_callable=validate_data)
     t2 = PythonOperator(task_id="prepare_data", python_callable=prepare_data)
     t3 = PythonOperator(task_id="train_model", python_callable=train_model)
