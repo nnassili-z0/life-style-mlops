@@ -1,0 +1,59 @@
+[2025-10-15T08:55:25.337+0000] {taskinstance.py:1956} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: mlops_level1_pipeline.validate_data scheduled__2024-01-01T00:00:00+00:00 [queued]>
+[2025-10-15T08:55:25.345+0000] {taskinstance.py:1956} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: mlops_level1_pipeline.validate_data scheduled__2024-01-01T00:00:00+00:00 [queued]>
+[2025-10-15T08:55:25.346+0000] {taskinstance.py:2170} INFO - Starting attempt 1 of 4
+[2025-10-15T08:55:25.363+0000] {taskinstance.py:2191} INFO - Executing <Task(PythonOperator): validate_data> on 2024-01-01 00:00:00+00:00
+[2025-10-15T08:55:25.373+0000] {standard_task_runner.py:60} INFO - Started process 539 to run task
+[2025-10-15T08:55:25.378+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'mlops_level1_pipeline', 'validate_data', 'scheduled__2024-01-01T00:00:00+00:00', '--job-id', '5', '--raw', '--subdir', 'DAGS_FOLDER/mlops_level1_pipeline.py', '--cfg-path', '/tmp/tmp11zm2miz']
+[2025-10-15T08:55:25.383+0000] {standard_task_runner.py:88} INFO - Job 5: Subtask validate_data
+[2025-10-15T08:55:25.494+0000] {task_command.py:423} INFO - Running <TaskInstance: mlops_level1_pipeline.validate_data scheduled__2024-01-01T00:00:00+00:00 [running]> on host cd6417cd872f
+[2025-10-15T08:55:25.639+0000] {taskinstance.py:2480} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='naoufal' AIRFLOW_CTX_DAG_ID='mlops_level1_pipeline' AIRFLOW_CTX_TASK_ID='validate_data' AIRFLOW_CTX_EXECUTION_DATE='2024-01-01T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-01-01T00:00:00+00:00'
+[2025-10-15T08:55:25.642+0000] {mlops_level1_pipeline.py:38} INFO - Validating dataset with Pandera...
+[2025-10-15T08:55:25.658+0000] {logging_mixin.py:188} WARNING - /home/***/.local/lib/python3.9/site-packages/pandera/_pandas_deprecated.py:149 FutureWarning: Importing pandas-specific classes and functions from the
+top-level pandera module will be **removed in a future version of pandera**.
+If you're using pandera to validate pandas objects, we highly recommend updating
+your import:
+
+```
+# old import
+import pandera as pa
+
+# new import
+import pandera.pandas as pa
+```
+
+If you're using pandera to validate objects from other compatible libraries
+like pyspark or polars, see the supported libraries section of the documentation
+for more information on how to import pandera:
+
+https://pandera.readthedocs.io/en/stable/supported_libraries.html
+
+To disable this warning, set the environment variable:
+
+```
+export DISABLE_PANDERA_IMPORT_WARNING=True
+```
+[2025-10-15T08:55:26.120+0000] {taskinstance.py:2698} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/models/taskinstance.py", line 433, in _execute_task
+    result = execute_callable(context=context, **execute_callable_kwargs)
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 199, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.9/site-packages/airflow/operators/python.py", line 216, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/mlops_level1_pipeline.py", line 51, in validate_data
+    schema.validate(df)
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandera/api/pandas/container.py", line 117, in validate
+    return self._validate(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandera/api/pandas/container.py", line 138, in _validate
+    return self.get_backend(check_obj).validate(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandera/backends/pandas/container.py", line 104, in validate
+    error_handler = self.run_checks_and_handle_errors(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandera/backends/pandas/container.py", line 191, in run_checks_and_handle_errors
+    error_handler.collect_error(
+  File "/home/airflow/.local/lib/python3.9/site-packages/pandera/api/base/error_handler.py", line 54, in collect_error
+    raise schema_error from original_exc
+pandera.errors.SchemaError: column 'Height' not in dataframe. Columns in dataframe: ['Age', 'Gender', 'Weight (kg)', 'Height (m)', 'Max_BPM', 'Avg_BPM', 'Resting_BPM', 'Session_Duration (hours)', 'Calories_Burned', 'Workout_Type', 'Fat_Percentage', 'Water_Intake (liters)', 'Workout_Frequency (days/week)', 'Experience_Level', 'BMI', 'Daily meals frequency', 'Physical exercise', 'Carbs', 'Proteins', 'Fats', 'Calories', 'meal_name', 'meal_type', 'diet_type', 'sugar_g', 'sodium_mg', 'cholesterol_mg', 'serving_size_g', 'cooking_method', 'prep_time_min', 'cook_time_min', 'rating', 'Name of Exercise', 'Sets', 'Reps', 'Benefit', 'Burns Calories (per 30 min)', 'Target Muscle Group', 'Equipment Needed', 'Difficulty Level', 'Body Part', 'Type of Muscle', 'Workout', 'BMI_calc', 'cal_from_macros', 'pct_carbs', 'protein_per_kg', 'pct_HRR', 'pct_maxHR', 'cal_balance', 'lean_mass_kg', 'expected_burn', 'Burns Calories (per 30 min)_bc', 'Burns_Calories_Bin']
+[2025-10-15T08:55:26.136+0000] {taskinstance.py:1138} INFO - Marking task as UP_FOR_RETRY. dag_id=mlops_level1_pipeline, task_id=validate_data, execution_date=20240101T000000, start_date=20251015T085525, end_date=20251015T085526
+[2025-10-15T08:55:26.150+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 5 for task validate_data (column 'Height' not in dataframe. Columns in dataframe: ['Age', 'Gender', 'Weight (kg)', 'Height (m)', 'Max_BPM', 'Avg_BPM', 'Resting_BPM', 'Session_Duration (hours)', 'Calories_Burned', 'Workout_Type', 'Fat_Percentage', 'Water_Intake (liters)', 'Workout_Frequency (days/week)', 'Experience_Level', 'BMI', 'Daily meals frequency', 'Physical exercise', 'Carbs', 'Proteins', 'Fats', 'Calories', 'meal_name', 'meal_type', 'diet_type', 'sugar_g', 'sodium_mg', 'cholesterol_mg', 'serving_size_g', 'cooking_method', 'prep_time_min', 'cook_time_min', 'rating', 'Name of Exercise', 'Sets', 'Reps', 'Benefit', 'Burns Calories (per 30 min)', 'Target Muscle Group', 'Equipment Needed', 'Difficulty Level', 'Body Part', 'Type of Muscle', 'Workout', 'BMI_calc', 'cal_from_macros', 'pct_carbs', 'protein_per_kg', 'pct_HRR', 'pct_maxHR', 'cal_balance', 'lean_mass_kg', 'expected_burn', 'Burns Calories (per 30 min)_bc', 'Burns_Calories_Bin']; 539)
+[2025-10-15T08:55:26.199+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2025-10-15T08:55:26.221+0000] {taskinstance.py:3280} INFO - 0 downstream tasks scheduled from follow-on schedule check

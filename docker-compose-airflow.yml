@@ -44,6 +44,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    restart: always
 
   airflow-init:
     <<: *airflow-common
@@ -52,6 +53,7 @@ services:
     entrypoint: ["bash", "-c", "airflow db upgrade && airflow users create --username ${_AIRFLOW_WWW_USER_USERNAME} --password ${_AIRFLOW_WWW_USER_PASSWORD} --firstname Admin --lastname User --role Admin --email admin@example.com || true"]
     depends_on:
       - postgres
+    restart: always
 
   webserver:
     <<: *airflow-common
@@ -62,6 +64,7 @@ services:
     entrypoint: ["bash", "-c", "airflow webserver"]
     depends_on:
       - airflow-init
+    restart: always
 
   scheduler:
     <<: *airflow-common
@@ -70,6 +73,7 @@ services:
     entrypoint: ["bash", "-c", "airflow scheduler"]
     depends_on:
       - airflow-init
+    restart: always
 
 networks:
   airflow_net:
