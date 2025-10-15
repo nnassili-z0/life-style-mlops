@@ -150,6 +150,27 @@ with DAG(
             mlflow.sklearn.log_model(model, "model")
         logging.info("Model registered with MLflow.")
 
+    def summary_statistics():
+        """Compute and log summary/descriptive statistics for raw data."""
+        import pandas as pd
+        import logging
+        df = pd.read_csv(DATA_PATH)
+        stats = df.describe(include='all')
+        logging.info(f"Summary statistics:\n{stats}")
+        # Save to artifact dir for traceability
+        ts = get_timestamp()
+        stats_path = os.path.join(ARTIFACT_DIR, f"summary_stats_{ts}.csv")
+        stats.to_csv(stats_path)
+        logging.info(f"Summary statistics saved to {stats_path}")
+        # Optionally, log feature types and missing values
+        logging.info(f"Feature types: {df.dtypes}")
+        missing = df.isnull().sum()
+        logging.info(f"Missing values per column:\n{missing}")
+        missing_path = os.path.join(ARTIFACT_DIR, f"missing_values_{ts}.csv")
+        missing.to_csv(missing_path)
+        logging.info(f"Missing values saved to {missing_path}")
+        return stats_path
+
     # DAG tasks
     ingest = BashOperator(
         task_id="ingest_data",
@@ -162,6 +183,7 @@ with DAG(
     evaluate = PythonOperator(task_id="evaluate_model", python_callable=evaluate_model)
     validate_model_task = PythonOperator(task_id="validate_model", python_callable=validate_model)
     register = PythonOperator(task_id="register_model", python_callable=register_model)
+    summary_stats = PythonOperator(task_id="summary_statistics", python_callable=summary_statistics)
 
-    # Data lineage: ingest -> validate -> preprocess -> split -> train -> evaluate -> validate_model -> register
-    ingest >> validate >> preprocess_task >> split >> train >> evaluate >> validate_model_task >> register
+    # Data lineage: ingest -> summary_stats -> validate -> preprocess -> split -> train -> evaluate -> validate_model -> register
+    ingest >> summary_stats >> validate >> preprocess_task >> split >> train >> evaluate >> validate_model_task >> register
