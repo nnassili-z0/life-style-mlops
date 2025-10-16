@@ -38,7 +38,27 @@ with DAG(
     catchup=False,
     tags=["mlops", "level1"]
 ) as dag:
-    def validate_raw():
+    def ingest_data(**context):
+        import subprocess
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        ingest_dir = os.path.join(artifact_base, "ingest")
+        os.makedirs(ingest_dir, exist_ok=True)
+        # run the python script
+        result = subprocess.run(["python", "/opt/airflow/data/ingest_kaggle.py"], capture_output=True, text=True)
+        # save log
+        log_path = os.path.join(ingest_dir, f"ingest_log_{ts}.txt")
+        with open(log_path, 'w') as f:
+            f.write("Ingest command output:\n")
+            f.write(result.stdout)
+            if result.stderr:
+                f.write("Errors:\n")
+                f.write(result.stderr)
+        if result.returncode != 0:
+            raise Exception(f"Ingest failed: {result.stderr}")
+        logging.info(f"Data ingested, log saved to {log_path}")
+
+    def validate_raw(**context):
         """Validate raw dataset schema."""
         logging.info("Validating raw dataset with Pandera...")
         schema = DataFrameSchema({
@@ -54,8 +74,16 @@ with DAG(
         df = pd.read_csv(DATA_PATH)
         schema.validate(df)
         logging.info("Raw data validation passed.")
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        validate_dir = os.path.join(artifact_base, "validate")
+        os.makedirs(validate_dir, exist_ok=True)
+        log_path = os.path.join(validate_dir, f"validation_log_{ts}.txt")
+        with open(log_path, 'w') as f:
+            f.write("Raw data validation passed.\n")
+        logging.info(f"Validation log saved to {log_path}")
 
-    def preprocess():
+    def preprocess(**context):
         """Preprocess data: encode, clean, and save artifact."""
         logging.info("Preprocessing data...")
         df = pd.read_csv(DATA_PATH)
@@ -73,8 +101,9 @@ with DAG(
             df = pd.get_dummies(df, columns=categorical_cols, prefix=categorical_cols)
         # Fill missing values with mean for numeric columns
         df = df.fillna(df.select_dtypes(include=[np.number]).mean())
-        ts = get_timestamp()
-        preprocess_dir = os.path.join(ARTIFACT_DIR, "preprocess")
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        preprocess_dir = os.path.join(artifact_base, "preprocess_task")
         os.makedirs(preprocess_dir, exist_ok=True)
         out_path = os.path.join(preprocess_dir, f"preprocessed_{ts}.csv")
         df.to_csv(out_path, index=False)
@@ -89,8 +118,9 @@ with DAG(
         X = df.drop("Calories", axis=1)
         y = df["Calories"]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        ts = get_timestamp()
-        split_dir = os.path.join(ARTIFACT_DIR, "split")
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        split_dir = os.path.join(artifact_base, "split")
         os.makedirs(split_dir, exist_ok=True)
         X_train_path = os.path.join(split_dir, f"X_train_{ts}.csv")
         X_test_path = os.path.join(split_dir, f"X_test_{ts}.csv")
@@ -116,8 +146,9 @@ with DAG(
         y_train = pd.read_csv(paths["y_train"])
         model = RandomForestRegressor(n_estimators=100, random_state=42)
         model.fit(X_train, y_train.values.ravel())
-        ts = get_timestamp()
-        train_dir = os.path.join(ARTIFACT_DIR, "train")
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        train_dir = os.path.join(artifact_base, "train")
         os.makedirs(train_dir, exist_ok=True)
         model_path = os.path.join(train_dir, f"model_{ts}.pkl")
         joblib.dump(model, model_path)
@@ -136,8 +167,9 @@ with DAG(
         mse = mean_squared_error(y_test, y_pred)
         mae = mean_absolute_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
-        ts = get_timestamp()
-        evaluate_dir = os.path.join(ARTIFACT_DIR, "evaluate")
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        evaluate_dir = os.path.join(artifact_base, "evaluate")
         os.makedirs(evaluate_dir, exist_ok=True)
         metrics_path = os.path.join(evaluate_dir, f"regression_metrics_{ts}.csv")
         pd.DataFrame({"MSE": [mse], "MAE": [mae], "R2": [r2]}).to_csv(metrics_path, index=False)
@@ -152,6 +184,14 @@ with DAG(
         if r2 < 0.7:
             raise ValueError(f"Model R2 score too low: {r2}")
         logging.info("Model passed validation.")
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        validate_model_dir = os.path.join(artifact_base, "validate_model_task")
+        os.makedirs(validate_model_dir, exist_ok=True)
+        log_path = os.path.join(validate_model_dir, f"validation_log_{ts}.txt")
+        with open(log_path, 'w') as f:
+            f.write("Model validation passed.\n")
+        logging.info(f"Validation log saved to {log_path}")
 
     def register_model(**context):
         """Register model with MLflow."""
@@ -169,8 +209,34 @@ with DAG(
             mlflow.log_metric("r2", eval_results["r2"])
             mlflow.sklearn.log_model(model, "model")
         logging.info("Model registered with MLflow.")
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        register_dir = os.path.join(artifact_base, "register")
+        os.makedirs(register_dir, exist_ok=True)
+        log_path = os.path.join(register_dir, f"registration_log_{ts}.txt")
+        with open(log_path, 'w') as f:
+            f.write("Model registered with MLflow.\n")
+        logging.info(f"Registration log saved to {log_path}")
 
-    def summary_statistics():
+    def create_summary(**context):
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        summary_dir = os.path.join(artifact_base, "summary")
+        os.makedirs(summary_dir, exist_ok=True)
+        # collect all files
+        summary_data = {}
+        for task in ["ingest", "summary_stats", "validate", "preprocess_task", "split", "train", "evaluate", "validate_model_task", "register"]:
+            task_dir = os.path.join(artifact_base, task)
+            if os.path.exists(task_dir):
+                files = os.listdir(task_dir)
+                summary_data[task] = files
+        summary_path = os.path.join(summary_dir, f"pipeline_summary_{ts}.json")
+        import json
+        with open(summary_path, 'w') as f:
+            json.dump(summary_data, f, indent=4)
+        logging.info(f"Pipeline summary saved to {summary_path}")
+
+    def summary_statistics(**context):
         """Compute and log summary/descriptive statistics for raw data."""
         import pandas as pd
         import logging
@@ -178,8 +244,9 @@ with DAG(
         stats = df.describe(include='all')
         logging.info(f"Summary statistics:\n{stats}")
         # Save to artifact dir for traceability
-        ts = get_timestamp()
-        summary_dir = os.path.join(ARTIFACT_DIR, "summary")
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        artifact_base = os.path.join(ARTIFACT_DIR, ts)
+        summary_dir = os.path.join(artifact_base, "summary_stats")
         os.makedirs(summary_dir, exist_ok=True)
         stats_path = os.path.join(summary_dir, f"summary_stats_{ts}.csv")
         stats.to_csv(stats_path)
@@ -194,10 +261,7 @@ with DAG(
         return stats_path
 
     # DAG tasks
-    ingest = BashOperator(
-        task_id="ingest_data",
-        bash_command="python /opt/airflow/data/ingest_kaggle.py",
-    )
+    ingest = PythonOperator(task_id="ingest_data", python_callable=ingest_data)
     validate = PythonOperator(task_id="validate_raw", python_callable=validate_raw)
     preprocess_task = PythonOperator(task_id="preprocess", python_callable=preprocess)
     split = PythonOperator(task_id="split_data", python_callable=split_data)
@@ -206,6 +270,7 @@ with DAG(
     validate_model_task = PythonOperator(task_id="validate_model", python_callable=validate_model)
     register = PythonOperator(task_id="register_model", python_callable=register_model)
     summary_stats = PythonOperator(task_id="summary_statistics", python_callable=summary_statistics)
+    summary = PythonOperator(task_id="create_summary", python_callable=create_summary)
 
-    # Data lineage: ingest -> summary_stats -> validate -> preprocess -> split -> train -> evaluate -> validate_model -> register
-    ingest >> summary_stats >> validate >> preprocess_task >> split >> train >> evaluate >> validate_model_task >> register
+    # Data lineage: ingest -> summary_stats -> validate -> preprocess -> split -> train -> evaluate -> validate_model -> register -> summary
+    ingest >> summary_stats >> validate >> preprocess_task >> split >> train >> evaluate >> validate_model_task >> register >> summary

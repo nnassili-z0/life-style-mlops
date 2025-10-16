@@ -48,7 +48,7 @@ services:
     <<: *airflow-common
     env_file:
       - ./.env
-    entrypoint: ["bash", "-c", "airflow db upgrade && airflow users create --username ${_AIRFLOW_WWW_USER_USERNAME} --password ${_AIRFLOW_WWW_USER_PASSWORD} --firstname Admin --lastname User --role Admin --email admin@example.com || true"]
+    entrypoint: ["bash", "-c", "python /opt/airflow/data/ingest_kaggle.py && airflow db upgrade && airflow users create --username ${_AIRFLOW_WWW_USER_USERNAME} --password ${_AIRFLOW_WWW_USER_PASSWORD} --firstname Admin --lastname User --role Admin --email admin@example.com || true"]
     depends_on:
       - postgres
     restart: always
