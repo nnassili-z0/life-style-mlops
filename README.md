@@ -62,7 +62,7 @@ The Airflow DAG automates the following steps:
 - **MLflow Integration**: Fixed URI to `localhost:5000` with in-container server for reliable registration.
 - **Docker Automation**: Data ingestion runs on container startup via `airflow-init`.
 - **Successful Runs**: Pipeline completes end-to-end with model registration and artifact traceability.
-- **Databricks Integration**: Connected to Databricks workspace with serverless compute. LLM: meta_llama_v3_1_70b_instruct for explanations.
+- **Databricks Integration**: Connected to Databricks workspace with serverless compute. Catalog 'lifestyle_mlops_catalog' created with schemas for data storage. MLflow experiments logged to Databricks. Pipeline uploads preprocessed data to catalog tables.
 - **Next Steps**: Set up Unity Catalog, deploy LLM endpoint, integrate pipeline with Databricks for scalable compute and AI explanations.
 
 ## 📁 Folder Structure
