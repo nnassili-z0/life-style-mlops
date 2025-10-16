@@ -8,12 +8,13 @@ import os
 import joblib
 import mlflow
 import mlflow.sklearn
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, f1_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import pandera as pa
 from pandera import Column, DataFrameSchema
 import time
+import numpy as np
 
 DATA_PATH = "/opt/airflow/data/raw/Final_data.csv"
 ARTIFACT_DIR = "/opt/airflow/demo_artifacts"
@@ -42,12 +43,11 @@ with DAG(
         logging.info("Validating raw dataset with Pandera...")
         schema = DataFrameSchema({
             "Gender": Column(str),
-            "Age": Column(int),
-            "Height": Column(float),
-            "Weight": Column(float),
-            "Duration": Column(int),
-            "Heart_Rate": Column(int),
-            "Body_Temp": Column(float),
+            "Age": Column(float),
+            "Height (m)": Column(float),
+            "Weight (kg)": Column(float),
+            "Session_Duration (hours)": Column(float),
+            "Avg_BPM": Column(float),
             "BMI": Column(float),
             "Calories": Column(float)
         })
@@ -59,7 +59,20 @@ with DAG(
         """Preprocess data: encode, clean, and save artifact."""
         logging.info("Preprocessing data...")
         df = pd.read_csv(DATA_PATH)
+        # Rename columns to match expected
+        df = df.rename(columns={
+            "Height (m)": "Height",
+            "Weight (kg)": "Weight",
+            "Session_Duration (hours)": "Duration",
+            "Avg_BPM": "Heart_Rate"
+        })
         df["Gender"] = df["Gender"].map({"Male": 0, "Female": 1})
+        # Encode all categorical columns
+        categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+        if categorical_cols:
+            df = pd.get_dummies(df, columns=categorical_cols, prefix=categorical_cols)
+        # Fill missing values with mean for numeric columns
+        df = df.fillna(df.select_dtypes(include=[np.number]).mean())
         ts = get_timestamp()
         out_path = os.path.join(ARTIFACT_DIR, f"preprocessed_{ts}.csv")
         os.makedirs(ARTIFACT_DIR, exist_ok=True)
@@ -98,7 +111,7 @@ with DAG(
         paths = context['ti'].xcom_pull(task_ids='split_data')
         X_train = pd.read_csv(paths["X_train"])
         y_train = pd.read_csv(paths["y_train"])
-        model = RandomForestClassifier(n_estimators=100, random_state=42)
+        model = RandomForestRegressor(n_estimators=100, random_state=42)
         model.fit(X_train, y_train.values.ravel())
         ts = get_timestamp()
         model_path = os.path.join(ARTIFACT_DIR, f"model_{ts}.pkl")
@@ -115,24 +128,22 @@ with DAG(
         X_test = pd.read_csv(paths["X_test"])
         y_test = pd.read_csv(paths["y_test"])
         y_pred = model.predict(X_test)
-        report = classification_report(y_test, y_pred, output_dict=True)
-        f1 = f1_score(y_test, y_pred, average="weighted")
+        mse = mean_squared_error(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
         ts = get_timestamp()
-        report_path = os.path.join(ARTIFACT_DIR, f"classification_report_{ts}.csv")
-        f1_path = os.path.join(ARTIFACT_DIR, f"f1_score_{ts}.txt")
-        pd.DataFrame(report).to_csv(report_path)
-        with open(f1_path, "w") as f:
-            f.write(str(f1))
-        logging.info(f"Model evaluation complete. F1 Score: {f1}")
-        return {"f1": f1, "f1_path": f1_path, "report_path": report_path}
+        metrics_path = os.path.join(ARTIFACT_DIR, f"regression_metrics_{ts}.csv")
+        pd.DataFrame({"MSE": [mse], "MAE": [mae], "R2": [r2]}).to_csv(metrics_path, index=False)
+        logging.info(f"Model evaluation complete. MSE: {mse:.2f}, MAE: {mae:.2f}, R2: {r2:.4f}")
+        return {"mse": mse, "mae": mae, "r2": r2, "metrics_path": metrics_path}
 
     def validate_model(**context):
         """Validate model performance."""
         logging.info("Validating model performance...")
         eval_results = context['ti'].xcom_pull(task_ids='evaluate_model')
-        f1 = eval_results["f1"]
-        if f1 < 0.7:
-            raise ValueError(f"Model F1 score too low: {f1}")
+        r2 = eval_results["r2"]
+        if r2 < 0.7:
+            raise ValueError(f"Model R2 score too low: {r2}")
         logging.info("Model passed validation.")
 
     def register_model(**context):
@@ -145,8 +156,10 @@ with DAG(
         with mlflow.start_run():
             model = joblib.load(model_path)
             mlflow.log_artifact(model_path, artifact_path="model")
-            mlflow.log_artifact(eval_results["report_path"], artifact_path="report")
-            mlflow.log_metric("f1_score", eval_results["f1"])
+            mlflow.log_artifact(eval_results["metrics_path"], artifact_path="metrics")
+            mlflow.log_metric("mse", eval_results["mse"])
+            mlflow.log_metric("mae", eval_results["mae"])
+            mlflow.log_metric("r2", eval_results["r2"])
             mlflow.sklearn.log_model(model, "model")
         logging.info("Model registered with MLflow.")
 

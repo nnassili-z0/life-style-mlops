@@ -27,7 +27,7 @@ def download_kaggle_dataset():
 
         # Check if the dataset is already downloaded
         # Note: This assumes a file from the dataset; you might need to adjust the filename.
-        expected_file = os.path.join(TARGET_DIR, 'Life Style Data.csv')
+        expected_file = os.path.join(TARGET_DIR, 'Final_data.csv')
         if os.path.exists(expected_file):
             logging.info(f"Dataset already exists at {expected_file}. Skipping download.")
             return
@@ -41,8 +41,7 @@ def download_kaggle_dataset():
         key = os.getenv("KAGGLE_KEY")
 
         if not username or not key:
-            logging.error("Kaggle username or key not found in environment variables.")
-            return
+            raise ValueError("Kaggle username or key not found in environment variables. Please set KAGGLE_USERNAME and KAGGLE_KEY in .env.")
 
         creds = base64.b64encode(bytes(f"{username}:{key}", "ISO-8859-1")).decode("ascii")
         headers = {
@@ -51,7 +50,7 @@ def download_kaggle_dataset():
 
         # 3: Sending a GET request to the URL with the encoded credentials.
         logging.info(f"Downloading dataset '{OWNER_SLUG}/{DATASET_SLUG}' to {TARGET_DIR}...")
-        response = requests.get(url, headers=headers, verify=False) # Setting verify=False to bypass SSL issues
+        response = requests.get(url, headers=headers, verify=True)
         response.raise_for_status()  # Raise an exception for bad status codes
 
         # 4: Loading the response as a file via io and opening it via zipfile.
