@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Minimal, local-development docker-compose for Airflow (LocalExecutor).
 # Loads variables from .env in repo root.
 
