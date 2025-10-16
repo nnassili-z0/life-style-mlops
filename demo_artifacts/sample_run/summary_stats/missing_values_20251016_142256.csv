@@ -1,0 +1,55 @@
+,0
+Age,0
+Gender,0
+Weight (kg),0
+Height (m),0
+Max_BPM,0
+Avg_BPM,0
+Resting_BPM,0
+Session_Duration (hours),0
+Calories_Burned,0
+Workout_Type,0
+Fat_Percentage,0
+Water_Intake (liters),0
+Workout_Frequency (days/week),0
+Experience_Level,0
+BMI,0
+Daily meals frequency,0
+Physical exercise,0
+Carbs,0
+Proteins,0
+Fats,0
+Calories,0
+meal_name,0
+meal_type,0
+diet_type,0
+sugar_g,0
+sodium_mg,0
+cholesterol_mg,0
+serving_size_g,0
+cooking_method,0
+prep_time_min,0
+cook_time_min,0
+rating,0
+Name of Exercise,0
+Sets,0
+Reps,0
+Benefit,0
+Burns Calories (per 30 min),0
+Target Muscle Group,0
+Equipment Needed,0
+Difficulty Level,0
+Body Part,0
+Type of Muscle,0
+Workout,0
+BMI_calc,0
+cal_from_macros,0
+pct_carbs,0
+protein_per_kg,0
+pct_HRR,0
+pct_maxHR,0
+cal_balance,0
+lean_mass_kg,0
+expected_burn,0
+Burns Calories (per 30 min)_bc,0
+Burns_Calories_Bin,0
