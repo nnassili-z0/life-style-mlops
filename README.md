@@ -68,7 +68,9 @@ The Airflow DAG automates the following steps:
 - `data/`: 
   - `ingest_kaggle.py` (Kaggle ingestion script)
   - `raw/`: Raw datasets from Kaggle
-- `demo_artifacts/`: Model and metrics artifacts
+- `demo_artifacts/`: 
+  - `sample_run/`: Example artifacts from a successful pipeline run (CSVs, logs, JSON summary)
+  - Runtime artifacts (ignored in git)
 - `docker/`: Dockerfiles for containerization
 - `logs/`: Airflow logs
 - `mlflow/`: MLflow tracking (when server is running)
