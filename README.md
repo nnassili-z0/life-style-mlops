@@ -77,19 +77,33 @@ This project implements a Level 1 MLOps architecture:
 - Add monitoring dashboards and alerting
 - Transition to Kubernetes for scalability
 
+
 ## 📁 Folder Structure
-- `dags/`: Airflow DAGs for ETL, ML pipeline
-- `data/`: Raw and processed datasets
-- `demo_artifacts/`: Model and metrics artifacts
-- `src/`: Source code for custom operators, utilities
-- `logs/`: Airflow and pipeline logs
-- `notebooks/`: Exploratory analysis and prototyping
-- `tests/`: Unit and integration tests
+- `airflow/`: Airflow project files
+- `dags/`: Contains `mlops_level1_pipeline.py` (main DAG), `mlops_level1_pipeline.pyc`, and `__pycache__`
+- `data/`: 
+   - `ingest_kaggle.py` (Kaggle ingestion script)
+   - `raw/`: `Final_data.csv`, `expanded_fitness_data.csv`, `meal_metadata.csv`
+   - `processed/`: (future processed datasets)
+- `demo_artifacts/`: Placeholder for model and metrics artifacts
+- `docker/`: `Dockerfile`, `Dockerfile_new` for containerization
+- `logs/`: Airflow and pipeline logs, including DAG run folders
+- `mlflow/`: MLflow tracking artifacts (future use)
+- `notebooks/`: 
+   - `databricks_catalog_schema_test.ipynb` (Databricks Connect, Delta table test)
+   - `databricks_connect_mlflow_example.ipynb` (MLflow/Databricks usage example)
+- `out/`: (empty)
+- `plugins/`: (empty, for custom Airflow plugins)
+- `resources/`: (empty, for future resources)
+- `src/`: (empty, for custom operators/utilities)
+- `tests/`: (empty, for unit/integration tests)
+- `typings/`: (empty, for type stubs)
 
 ## 🔒 Security
 - Sensitive credentials are managed via `.env` (not committed)
 - Example `.env.example` provided for safe sharing
 - Fernet key used for Airflow metadata encryption
+
 
 ## 📝 How to Run
 1. Build and start Airflow with Docker Compose:
@@ -98,12 +112,17 @@ This project implements a Level 1 MLOps architecture:
    ```
 2. Access Airflow UI at [localhost:8080](http://localhost:8080) (admin/admin)
 3. Trigger the `mlops_level1_pipeline` DAG to run the full pipeline
+4. Data ingestion is handled by `data/ingest_kaggle.py` (downloads and extracts Kaggle dataset to `data/raw/Final_data.csv`).
+5. The pipeline performs validation, preprocessing, splitting, model training, evaluation, and MLflow registration.
+6. For Databricks integration, see `notebooks/databricks_catalog_schema_test.ipynb` and `databricks_connect_mlflow_example.ipynb`.
+
 
 ## 📦 Requirements
 All dependencies are listed in `requirements.txt`. Install with:
 ```bash
 pip install -r requirements.txt
 ```
+Main packages: apache-airflow, pandas, pandera, scikit-learn, mlflow, requests, python-dotenv, joblib
 
 ## 🖼️ Architecture Diagram
 See the attached PNG for the full Level 1 MLOps architecture.
