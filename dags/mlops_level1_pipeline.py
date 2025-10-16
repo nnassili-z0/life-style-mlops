@@ -198,7 +198,7 @@ with DAG(
         logging.info("Registering model with MLflow...")
         model_path = context['ti'].xcom_pull(task_ids='train_model')
         eval_results = context['ti'].xcom_pull(task_ids='evaluate_model')
-        mlflow.set_tracking_uri("http://localhost:5000")
+        mlflow.set_tracking_uri("https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/mlflow")
         mlflow.set_experiment("life-style-mlops")
         with mlflow.start_run():
             model = joblib.load(model_path)
@@ -217,6 +217,28 @@ with DAG(
         with open(log_path, 'w') as f:
             f.write("Model registered with MLflow.\n")
         logging.info(f"Registration log saved to {log_path}")
+
+    def upload_to_databricks(**context):
+        """Upload preprocessed data to Databricks catalog."""
+        import requests
+        import base64
+        logging.info("Uploading data to Databricks...")
+        in_path = context['ti'].xcom_pull(task_ids='preprocess')
+        with open(in_path, 'rb') as f:
+            content = f.read()
+        encoded = base64.b64encode(content).decode('utf-8')
+        headers = {'Authorization': f'Bearer {os.environ["DATABRICKS_TOKEN"]}'}
+        ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
+        dbfs_path = f"/lifestyle_mlops/preprocessed_{ts}.csv"
+        put_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/put', headers=headers, json={"path": dbfs_path, "contents": encoded, "overwrite": True}, verify=False)
+        if put_response.status_code != 200:
+            raise Exception(f"Failed to upload to DBFS: {put_response.text}")
+        # Create table
+        query = f"CREATE TABLE IF NOT EXISTS lifestyle_mlops_catalog.raw_data.preprocessed_data USING DELTA AS SELECT * FROM csv.`dbfs:{dbfs_path}`"
+        sql_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/sql/statements', headers=headers, json={"warehouse_id": "7bb142c4f4ff862e", "query": {"query_text": query}}, verify=False)
+        if sql_response.status_code != 200:
+            raise Exception(f"Failed to create table: {sql_response.text}")
+        logging.info("Data uploaded to Databricks catalog.")
 
     def create_summary(**context):
         ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
@@ -264,6 +286,7 @@ with DAG(
     ingest = PythonOperator(task_id="ingest_data", python_callable=ingest_data)
     validate = PythonOperator(task_id="validate_raw", python_callable=validate_raw)
     preprocess_task = PythonOperator(task_id="preprocess", python_callable=preprocess)
+    upload = PythonOperator(task_id="upload_to_databricks", python_callable=upload_to_databricks)
     split = PythonOperator(task_id="split_data", python_callable=split_data)
     train = PythonOperator(task_id="train_model", python_callable=train_model)
     evaluate = PythonOperator(task_id="evaluate_model", python_callable=evaluate_model)
@@ -272,5 +295,5 @@ with DAG(
     summary_stats = PythonOperator(task_id="summary_statistics", python_callable=summary_statistics)
     summary = PythonOperator(task_id="create_summary", python_callable=create_summary)
 
-    # Data lineage: ingest -> summary_stats -> validate -> preprocess -> split -> train -> evaluate -> validate_model -> register -> summary
-    ingest >> summary_stats >> validate >> preprocess_task >> split >> train >> evaluate >> validate_model_task >> register >> summary
+    # Data lineage: ingest -> summary_stats -> validate -> preprocess -> upload -> split -> train -> evaluate -> validate_model -> register -> summary
+    ingest >> summary_stats >> validate >> preprocess_task >> upload >> split >> train >> evaluate >> validate_model_task >> register >> summary
