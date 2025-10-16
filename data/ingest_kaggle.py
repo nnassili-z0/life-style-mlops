@@ -50,7 +50,7 @@ def download_kaggle_dataset():
 
         # 3: Sending a GET request to the URL with the encoded credentials.
         logging.info(f"Downloading dataset '{OWNER_SLUG}/{DATASET_SLUG}' to {TARGET_DIR}...")
-        response = requests.get(url, headers=headers, verify=True)
+        response = requests.get(url, headers=headers, verify=False)
         response.raise_for_status()  # Raise an exception for bad status codes
 
         # 4: Loading the response as a file via io and opening it via zipfile.

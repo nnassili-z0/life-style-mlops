@@ -39,7 +39,7 @@ The pipeline includes:
 
 ## 📊 Pipeline Stages
 The Airflow DAG automates the following steps:
-- **Data Ingestion**: Download raw data from Kaggle using the API.
+- **Data Ingestion**: Download raw data from Kaggle using the API (runs on Docker startup).
 - **Summary Statistics**: Compute and log descriptive statistics for the raw dataset.
 - **Data Validation**: Validate schema and data integrity using Pandera.
 - **Preprocessing**: Clean data, encode categorical features, impute missing values, save artifacts.
@@ -47,17 +47,20 @@ The Airflow DAG automates the following steps:
 - **Model Training**: Train a RandomForest Regressor on calories burned prediction.
 - **Model Evaluation**: Evaluate with regression metrics (MSE, MAE, R2).
 - **Model Validation**: Ensure R2 >= 0.7.
-- **Model Registration**: Log model and metrics to MLflow.
+- **Model Registration**: Log model and metrics to MLflow (runs in-container).
+- **Summary**: Collect all artifacts into a JSON summary for full data lineage.
 
 ## 🧩 ML Use Case
 - **Regression**: Predict calories burned based on age, height, weight, session duration, BPM, BMI, and gender.
+- **Performance**: Achieves R2 ~0.98 on test set with RandomForest Regressor.
 
-## 🔧 Recent Fixes
-- Switched model from RandomForestClassifier to RandomForestRegressor for continuous target.
-- Added imputation for missing values in preprocessing to prevent training failures.
-- Updated metrics to regression (MSE, MAE, R2) instead of classification.
-- Cleaned up requirements.txt and Docker Compose files.
-- Fixed data ingestion script for reliable Kaggle downloads.
+## 🔧 Recent Updates
+- **Artifact Organization**: All pipeline artifacts saved in timestamped subfolders (e.g., `demo_artifacts/20251016_142256/train/model_20251016_142256.pkl`) for better data lineage.
+- **Summary Task**: Added final task to collect all files into `pipeline_summary_{ts}.json`.
+- **MLflow Integration**: Fixed URI to `localhost:5000` with in-container server for reliable registration.
+- **Docker Automation**: Data ingestion runs on container startup via `airflow-init`.
+- **Successful Runs**: Pipeline completes end-to-end with model registration and artifact traceability.
+- **Next Steps**: Integrate with Databricks for scalable compute and advanced analytics.
 
 ## 📁 Folder Structure
 - `airflow/`: Airflow project files
