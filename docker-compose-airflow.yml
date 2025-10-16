@@ -14,6 +14,7 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+    DATABRICKS_TOKEN: ${DATABRICKS_TOKEN}
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
