@@ -222,19 +222,22 @@ with DAG(
         """Upload preprocessed data to Databricks catalog."""
         import requests
         import base64
+        import gzip
         logging.info("Uploading data to Databricks...")
         in_path = context['ti'].xcom_pull(task_ids='preprocess')
         with open(in_path, 'rb') as f:
             content = f.read()
-        encoded = base64.b64encode(content).decode('utf-8')
+        # Compress the content
+        compressed = gzip.compress(content)
+        encoded = base64.b64encode(compressed).decode('utf-8')
         headers = {'Authorization': f'Bearer {os.environ["DATABRICKS_TOKEN"]}'}
         ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
-        dbfs_path = f"/lifestyle_mlops/preprocessed_{ts}.csv"
+        dbfs_path = f"/lifestyle_mlops/preprocessed_{ts}.csv.gz"
         put_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/put', headers=headers, json={"path": dbfs_path, "contents": encoded, "overwrite": True}, verify=False)
         if put_response.status_code != 200:
             raise Exception(f"Failed to upload to DBFS: {put_response.text}")
         # Create table
-        query = f"CREATE TABLE IF NOT EXISTS lifestyle_mlops_catalog.raw_data.preprocessed_data USING DELTA AS SELECT * FROM csv.`dbfs:{dbfs_path}`"
+        query = f"CREATE TABLE IF NOT EXISTS lifestyle_mlops_catalog.processed.preprocessed_data USING DELTA AS SELECT * FROM csv.`dbfs:{dbfs_path}`"
         sql_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/sql/statements', headers=headers, json={"warehouse_id": "7bb142c4f4ff862e", "query": {"query_text": query}}, verify=False)
         if sql_response.status_code != 200:
             raise Exception(f"Failed to create table: {sql_response.text}")
