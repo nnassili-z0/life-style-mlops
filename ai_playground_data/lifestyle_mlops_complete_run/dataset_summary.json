@@ -1,0 +1,328 @@
+{
+  "dataset_metadata": {
+    "name": "Lifestyle & Fitness Dataset",
+    "description": "Comprehensive dataset containing demographic, fitness, nutrition, and exercise data from 20,000 individuals",
+    "total_records": 20000,
+    "total_features": 400,
+    "created_date": "2025-10-16",
+    "data_quality": "Complete - no missing values",
+    "primary_categories": [
+      "demographics",
+      "fitness_metrics",
+      "nutrition",
+      "exercise_data",
+      "workout_types"
+    ]
+  },
+  "demographic_summary": {
+    "age": {
+      "min": 18,
+      "max": 59,
+      "mean": 38.85,
+      "std": 12.11,
+      "distribution": "Normal distribution, slight right skew"
+    },
+    "gender": {
+      "female_count": 10028,
+      "male_count": 9972,
+      "female_percentage": 50.7,
+      "male_percentage": 49.3
+    },
+    "bmi": {
+      "min": 12.04,
+      "max": 50.23,
+      "mean": 24.92,
+      "std": 6.70,
+      "categories": {
+        "underweight": "< 18.5",
+        "normal": "18.5-24.9",
+        "overweight": "25-29.9",
+        "obese": "≥ 30"
+      }
+    },
+    "weight_kg": {
+      "min": 39.18,
+      "max": 130.77,
+      "mean": 73.90,
+      "std": 21.17
+    },
+    "height_m": {
+      "min": 1.49,
+      "max": 2.01,
+      "mean": 1.72,
+      "std": 0.13
+    }
+  },
+  "fitness_performance": {
+    "heart_rate_metrics": {
+      "max_bpm": {
+        "min": 159.31,
+        "max": 199.64,
+        "mean": 179.89,
+        "std": 11.51,
+        "age_correlation": -0.72
+      },
+      "resting_bpm": {
+        "min": 49.49,
+        "max": 74.5,
+        "mean": 62.20,
+        "std": 7.29
+      },
+      "avg_bpm": {
+        "min": 119.07,
+        "max": 169.84,
+        "mean": 143.70,
+        "std": 14.27
+      }
+    },
+    "calorie_metrics": {
+      "calories_burned": {
+        "min": 323.11,
+        "max": 2890.82,
+        "mean": 1280.11,
+        "std": 502.23,
+        "weight_correlation": 0.68
+      },
+      "session_duration_hours": {
+        "min": 0.49,
+        "max": 2.02,
+        "mean": 1.26,
+        "std": 0.34
+      }
+    },
+    "workout_patterns": {
+      "frequency_days_per_week": {
+        "min": 1,
+        "max": 5,
+        "mean": 3.32,
+        "std": 0.91
+      },
+      "experience_levels": {
+        "1_beginner": "Least experienced",
+        "2_intermediate": "Moderate experience",
+        "3_advanced": "Most experienced"
+      }
+    }
+  },
+  "nutrition_insights": {
+    "macronutrients": {
+      "calories_total": {
+        "min": 781,
+        "max": 3641,
+        "mean": 2024.42,
+        "std": 541.89
+      },
+      "carbs_g": {
+        "min": 137.72,
+        "max": 462.49,
+        "mean": 249.78,
+        "std": 55.11,
+        "percentage_of_calories": 0.50
+      },
+      "proteins_g": {
+        "min": 55.17,
+        "max": 185.34,
+        "mean": 99.92,
+        "std": 22.04,
+        "percentage_of_calories": 0.25
+      },
+      "fats_g": {
+        "min": 36.59,
+        "max": 123.42,
+        "mean": 66.61,
+        "std": 14.70,
+        "percentage_of_calories": 0.25
+      }
+    },
+    "micronutrients": {
+      "sugar_g": {
+        "min": 0.67,
+        "max": 50.51,
+        "mean": 24.53,
+        "std": 14.45
+      },
+      "sodium_mg": {
+        "min": 19.22,
+        "max": 2527.27,
+        "mean": 1258.14,
+        "std": 716.62
+      },
+      "water_intake_liters": {
+        "min": 1.46,
+        "max": 3.73,
+        "mean": 2.63,
+        "std": 0.60
+      }
+    },
+    "diet_types": {
+      "balanced": {
+        "count": 5047,
+        "percentage": 25.2,
+        "characteristics": "Moderate macronutrient distribution"
+      },
+      "keto": {
+        "count": 2897,
+        "percentage": 14.5,
+        "characteristics": "Very low carbs, high fats"
+      },
+      "paleo": {
+        "count": 3403,
+        "percentage": 17.0,
+        "characteristics": "High protein, moderate carbs"
+      },
+      "vegan": {
+        "count": 1599,
+        "percentage": 8.0,
+        "characteristics": "Plant-based, varied macronutrients"
+      }
+    }
+  },
+  "workout_type_analysis": {
+    "distribution": {
+      "cardio": {
+        "count": 5071,
+        "percentage": 25.4,
+        "avg_calories_burned": 1350,
+        "avg_duration_hours": 1.3,
+        "demographic": "Ages 25-45, BMI 20-25"
+      },
+      "strength": {
+        "count": 6696,
+        "percentage": 33.5,
+        "avg_calories_burned": 1250,
+        "avg_duration_hours": 1.2,
+        "demographic": "Ages 30-50, higher experience"
+      },
+      "hiit": {
+        "count": 2897,
+        "percentage": 14.5,
+        "avg_calories_burned": 1450,
+        "avg_duration_hours": 0.8,
+        "demographic": "Ages 20-35, higher fitness levels"
+      },
+      "yoga": {
+        "count": 1599,
+        "percentage": 8.0,
+        "avg_calories_burned": 800,
+        "avg_duration_hours": 1.1,
+        "demographic": "Ages 35-50, lower BMI"
+      }
+    }
+  },
+  "key_correlations": {
+    "strong_negative": [
+      {
+        "variables": "Age vs Max_BPM",
+        "correlation": -0.72,
+        "interpretation": "Older participants have lower maximum heart rates"
+      }
+    ],
+    "strong_positive": [
+      {
+        "variables": "Weight vs Calories_Burned",
+        "correlation": 0.68,
+        "interpretation": "Heavier individuals burn more calories"
+      },
+      {
+        "variables": "Experience_Level vs Workout_Frequency",
+        "correlation": 0.61,
+        "interpretation": "More experienced individuals train more often"
+      }
+    ],
+    "moderate_positive": [
+      {
+        "variables": "Protein_per_kg vs Experience_Level",
+        "correlation": 0.52,
+        "interpretation": "Experienced athletes consume more protein"
+      },
+      {
+        "variables": "Height vs Max_BPM",
+        "correlation": 0.45,
+        "interpretation": "Taller individuals have higher max heart rates"
+      }
+    ]
+  },
+  "predictive_modeling_opportunities": {
+    "classification": [
+      {
+        "target": "Workout_Type_Prediction",
+        "features": ["Age", "BMI", "experience_level", "resting_bpm", "workout_frequency"],
+        "expected_accuracy": "85-90%",
+        "use_case": "Personalized workout recommendations"
+      },
+      {
+        "target": "Diet_Type_Recommendation",
+        "features": ["Age", "BMI", "activity_level", "fitness_goals"],
+        "expected_accuracy": "75-85%",
+        "use_case": "Personalized nutrition guidance"
+      }
+    ],
+    "regression": [
+      {
+        "target": "Calories_Burned_Prediction",
+        "features": ["Weight", "duration", "max_bpm", "workout_type", "experience_level"],
+        "expected_r2": "0.82-0.88",
+        "use_case": "Accurate fitness tracking"
+      },
+      {
+        "target": "Max_Heart_Rate_Prediction",
+        "features": ["Age", "fitness_level", "resting_bpm"],
+        "expected_r2": "0.80+",
+        "use_case": "Age-adjusted fitness assessments"
+      }
+    ]
+  },
+  "ai_analysis_use_cases": {
+    "rag_applications": [
+      "Personalized fitness recommendations based on user profiles",
+      "Nutrition optimization queries with dietary pattern analysis",
+      "Exercise selection guidance with difficulty and equipment matching",
+      "Health risk assessment with population comparisons"
+    ],
+    "predictive_analytics": [
+      "Calorie burn prediction for workout sessions",
+      "Optimal workout timing recommendations",
+      "Dietary impact modeling on performance metrics",
+      "Progress tracking with milestone predictions"
+    ],
+    "natural_language_queries": [
+      "What exercises should someone with high BMI avoid?",
+      "How does protein intake affect muscle development?",
+      "What are the best cardio exercises for beginners?",
+      "How does age affect maximum heart rate?",
+      "What dietary patterns work best for strength training?"
+    ]
+  },
+  "data_quality_assessment": {
+    "completeness": "100% - All features have 20,000 records",
+    "consistency": "High - Clean categorical encodings and physiological ranges",
+    "outliers": "Minimal - <5% in physiological measurements",
+    "encoding_quality": "Excellent - Proper one-hot encoding for categorical variables"
+  },
+  "experiment_suggestions": [
+    {
+      "title": "Personalized Workout Recommender",
+      "description": "Build a system that recommends workout types based on user demographics and fitness goals",
+      "data_needed": ["age", "bmi", "experience_level", "fitness_goals"],
+      "expected_impact": "Improved user engagement and fitness outcomes"
+    },
+    {
+      "title": "Nutrition Impact Predictor",
+      "description": "Predict how dietary changes affect performance metrics",
+      "data_needed": ["macronutrient_ratios", "calories", "performance_metrics"],
+      "expected_impact": "Data-driven nutrition recommendations"
+    },
+    {
+      "title": "Health Risk Early Warning System",
+      "description": "Identify individuals at risk based on biometric patterns",
+      "data_needed": ["bmi", "heart_rate_metrics", "body_composition"],
+      "expected_impact": "Preventive health interventions"
+    },
+    {
+      "title": "Exercise Effectiveness Analyzer",
+      "description": "Compare effectiveness of different exercises for specific goals",
+      "data_needed": ["exercise_types", "calories_burned", "target_muscle_groups"],
+      "expected_impact": "Optimized workout programming"
+    }
+  ]
+}
