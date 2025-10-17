@@ -231,7 +231,7 @@ with DAG(
         compressed = gzip.compress(content)
         headers = {'Authorization': f'Bearer {os.environ["DATABRICKS_TOKEN"]}'}
         ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
-        dbfs_path = f"/lifestyle_mlops/preprocessed_{ts}.csv.gz"
+        dbfs_path = f"/FileStore/lifestyle_mlops/preprocessed_{ts}.csv.gz"
         # Create file handle
         create_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/create', headers=headers, json={"path": dbfs_path, "overwrite": True}, verify=False)
         if create_response.status_code != 200:
