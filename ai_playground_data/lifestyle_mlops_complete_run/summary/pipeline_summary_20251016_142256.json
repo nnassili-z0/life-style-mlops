@@ -1,0 +1,33 @@
+{
+    "ingest": [
+        "ingest_log_20251016_142256.txt"
+    ],
+    "summary_stats": [
+        "missing_values_20251016_142256.csv",
+        "summary_stats_20251016_142256.csv"
+    ],
+    "validate": [
+        "validation_log_20251016_142256.txt"
+    ],
+    "preprocess_task": [
+        "preprocessed_20251016_142256.csv"
+    ],
+    "split": [
+        "X_test_20251016_142256.csv",
+        "X_train_20251016_142256.csv",
+        "y_test_20251016_142256.csv",
+        "y_train_20251016_142256.csv"
+    ],
+    "train": [
+        "model_20251016_142256.pkl"
+    ],
+    "evaluate": [
+        "regression_metrics_20251016_142256.csv"
+    ],
+    "validate_model_task": [
+        "validation_log_20251016_142256.txt"
+    ],
+    "register": [
+        "registration_log_20251016_142256.txt"
+    ]
+}
