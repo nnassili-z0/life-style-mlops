@@ -6,9 +6,20 @@ Welcome to the enhanced AI playground for the Lifestyle & Fitness dataset! This 
 
 ### Core Dataset Files
 - **`preprocessed_20251016_142256.csv`** - Main dataset (400+ features, 20,000 records)
-- **`regression_metrics_20251016_142256.csv`** - Model performance metrics
-- **`summary_stats_20251016_142256.csv`** - Statistical summaries
-- **`missing_values_20251016_142256.csv`** - Data quality analysis
+- **`regression_metrics_20251016_142256.csv`** - Model performance metrics (MSE, MAE, R²)
+- **`summary_stats_20251016_142256.csv`** - Statistical summaries for all features
+- **`missing_values_20251016_142256.csv`** - Data quality analysis (0% missing values)
+
+### Training Data Splits
+- **`X_train_20251016_142256.csv`** - Training features (80% of data)
+- **`X_test_20251016_142256.csv`** - Test features (20% of data)
+- **`y_train_20251016_142256.csv`** - Training target (calories burned)
+- **`y_test_20251016_142256.csv`** - Test target (calories burned)
+
+### Pipeline Artifacts
+- **`pipeline_summary_20251016_142256.json`** - Complete pipeline execution summary
+- **Log files**: Data ingestion, validation, preprocessing, and model registration logs
+- **Model file**: Excluded (100MB+ size) - use regression metrics for performance evaluation
 
 ### Enhanced AI Resources
 - **`DATA_DICTIONARY.md`** - Complete feature documentation (400+ features explained)
@@ -16,10 +27,22 @@ Welcome to the enhanced AI playground for the Lifestyle & Fitness dataset! This 
 - **`AI_ANALYSIS_TEMPLATES.md`** - Ready-to-use queries, prompts, and use cases
 - **`dataset_summary.json`** - Structured JSON summary for AI processing
 
-### Supporting Files
-- **Pipeline logs** - Data ingestion, validation, and processing logs
-- **Training data splits** - X_train, X_test, y_train, y_test
-- **Feature engineering outputs** - Preprocessed and transformed data
+## 📅 Data Information
+
+### File Naming Convention
+All data files follow the timestamp format: `YYYYMMDD_HHMMSS`
+- **Current dataset**: `20251016_142256` (October 16, 2025, 14:22:56)
+- **Future updates**: Will use new timestamps for version tracking
+
+### Data Versioning
+- **Version 1.0**: Initial release with complete pipeline artifacts
+- **Data freshness**: Generated from successful MLOps pipeline run
+- **Update frequency**: As new pipeline runs complete successfully
+
+### Data Splits
+- **Training set**: 16,000 records (80%)
+- **Test set**: 4,000 records (20%)
+- **Stratification**: Maintained demographic and workout type distributions
 
 ## 🚀 Quick Start for AI Experiments
 
@@ -65,6 +88,31 @@ WHERE Workout_Type_Cardio = 1 OR Workout_Type_Strength = 1
    OR Workout_Type_HIIT = 1 OR Workout_Type_Yoga = 1
 GROUP BY workout_type
 ORDER BY avg_calories DESC;
+```
+
+### 4. Quick Data Exploration
+```python
+# Load and explore the dataset
+import pandas as pd
+import numpy as np
+
+# Basic info
+df = pd.read_csv('preprocessed_20251016_142256.csv')
+print(f"Shape: {df.shape}")
+print(f"Memory usage: {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
+
+# Quick statistical overview
+print(df.describe())
+
+# Check categorical distributions
+workout_cols = [col for col in df.columns if col.startswith('Workout_Type_')]
+print("Workout type distribution:")
+print(df[workout_cols].sum().sort_values(ascending=False))
+
+# Correlation with target variable
+correlations = df.corr()['Calories_Burned'].abs().sort_values(ascending=False)
+print("Top correlations with calories burned:")
+print(correlations.head(10))
 ```
 
 ## 🎯 AI Analysis Use Cases
@@ -256,19 +304,36 @@ Expected accuracy: 85%+
 - **Analysis API**: `/analyze?metrics=heart_rate,calories,bmi`
 - **Query API**: `/query?question="best exercises for beginners"`
 
-## 📈 Performance Benchmarks
+## � Reproducibility & Pipeline Context
 
-### Model Performance Expectations
-- **Workout Classification**: 85-90% accuracy
-- **Calorie Prediction**: R² 0.82-0.88
-- **Health Risk Assessment**: 80-90% accuracy
-- **Nutrition Recommendations**: 75-85% accuracy
+### MLOps Pipeline Origin
+This dataset was generated from a complete MLOps pipeline including:
+- **Data Ingestion**: Raw data collection and initial validation
+- **Preprocessing**: Feature engineering, encoding, and scaling
+- **Model Training**: Regression model for calorie burn prediction
+- **Evaluation**: Performance metrics and validation
+- **Registration**: Model versioning and artifact storage
 
-### Data Processing Notes
-- **Feature Scaling**: Many numerical features need standardization
-- **Categorical Encoding**: One-hot encoding already applied
-- **Outlier Handling**: <5% outliers in physiological data
-- **Train/Validation Split**: Use provided X_train/X_test splits
+### Reproducing Results
+To reproduce this pipeline run:
+```bash
+# From the main repository
+cd life-style-mlops
+docker-compose up airflow-webserver airflow-scheduler
+
+# Trigger the mlops_level1_pipeline DAG
+# Access Airflow UI at http://localhost:8080
+```
+
+### Model Performance
+- **Algorithm**: Regression model (implementation details in pipeline logs)
+- **Target Variable**: Calories_Burned
+- **MSE**: 605.69 (Mean Squared Error)
+- **MAE**: 58.68 (Mean Absolute Error)
+- **R²**: 0.98 (coefficient of determination)
+
+### Data Processing Pipeline
+1. **Raw Data** → 2. **Validation** → 3. **Preprocessing** → 4. **Feature Engineering** → 5. **Train/Test Split** → 6. **Model Training** → 7. **Evaluation** → 8. **Artifact Storage**
 
 ## 🎯 Next Steps for AI Experiments
 
@@ -278,7 +343,47 @@ Expected accuracy: 85%+
 4. **Iterate**: Use the analysis templates as starting points
 5. **Scale Up**: Move from batch processing to real-time applications
 
-## 📞 Support & Resources
+## � Changelog
+
+### Version 1.0 (October 2025)
+- **Initial Release**: Complete pipeline artifacts from successful MLOps run
+- **Dataset**: 20,000 records, 400+ engineered features
+- **AI Resources**: Comprehensive documentation, analysis templates, and insights
+- **Model Performance**: R² = 0.98 on calorie burn prediction
+- **Data Quality**: 100% complete, no missing values
+
+### Planned Updates
+- **Version 1.1**: Additional model types (classification, time series)
+- **Version 1.2**: Real-time data integration capabilities
+- **Version 2.0**: Multi-modal data (images, videos, wearables)
+
+## 🤝 Contributing & Support
+
+### How to Contribute
+1. **Report Issues**: Use GitHub issues for bugs or feature requests
+2. **Suggest Improvements**: Open discussions for new analysis ideas
+3. **Share Models**: Contribute new ML models trained on this dataset
+4. **Add Documentation**: Help improve AI templates and use cases
+
+### Getting Help
+- **Documentation**: Start with `DATA_DICTIONARY.md` and `ANALYSIS_INSIGHTS.md`
+- **Examples**: Check `AI_ANALYSIS_TEMPLATES.md` for code samples
+- **Issues**: Search existing GitHub issues before creating new ones
+- **Discussions**: Use GitHub discussions for questions and ideas
+
+### Citation
+If you use this dataset in your research or projects:
+```bibtex
+@dataset{lifestyle_fitness_2025,
+  title={Lifestyle & Fitness Dataset - AI Playground},
+  author={nnassili-z0},
+  year={2025},
+  url={https://github.com/nnassili-z0/life-style-mlops},
+  version={1.0}
+}
+```
+
+## �📞 Support & Resources
 
 - **Data Dictionary**: `DATA_DICTIONARY.md` - Complete feature reference
 - **Analysis Insights**: `ANALYSIS_INSIGHTS.md` - Pre-computed statistics
@@ -287,9 +392,14 @@ Expected accuracy: 85%+
 
 ---
 
-**Dataset Version**: 1.0 (October 2025)
-**Records**: 20,000 complete profiles
-**Features**: 400+ engineered features
-**Use Cases**: Personalization, prediction, recommendation, analysis
+**Dataset Version**: 1.0 (October 2025)  
+**Records**: 20,000 complete profiles  
+**Features**: 400+ engineered features  
+**Model Performance**: R² = 0.98 (calorie prediction)  
+**Data Quality**: 100% complete, validated  
+**Use Cases**: Personalization, prediction, recommendation, analysis  
+**License**: MIT (see main repository)  
+**Contact**: GitHub Issues or Discussions  
+**Last Updated**: October 17, 2025  
 
 Happy experimenting! 🚀💪
