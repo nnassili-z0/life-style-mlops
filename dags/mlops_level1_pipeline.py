@@ -223,38 +223,148 @@ with DAG(
         import requests
         import base64
         import gzip
+        import time
         logging.info("Uploading data to Databricks...")
+
+        # Get preprocessed data
         in_path = context['ti'].xcom_pull(task_ids='preprocess')
-        with open(in_path, 'rb') as f:
-            content = f.read()
-        # Compress the content
-        compressed = gzip.compress(content)
-        headers = {'Authorization': f'Bearer {os.environ["DATABRICKS_TOKEN"]}'}
+        df = pd.read_csv(in_path)
+
+        # Split data into train/test sets for catalog storage
+        X = df.drop("Calories", axis=1)
+        y = df["Calories"]
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Combine back for storage
+        train_data = X_train.copy()
+        train_data["Calories"] = y_train
+        test_data = X_test.copy()
+        test_data["Calories"] = y_test
+
+        # Save as parquet locally first (more efficient than CSV for Databricks)
         ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
-        dbfs_path = f"/FileStore/lifestyle_mlops/preprocessed_{ts}.csv.gz"
-        # Create file handle
-        create_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/create', headers=headers, json={"path": dbfs_path, "overwrite": True}, verify=False)
-        if create_response.status_code != 200:
-            raise Exception(f"Failed to create DBFS file: {create_response.text}")
-        handle = create_response.json()['handle']
-        # Upload in chunks
-        chunk_size = 1024 * 1024  # 1MB chunks
-        for i in range(0, len(compressed), chunk_size):
-            chunk = compressed[i:i + chunk_size]
-            encoded_chunk = base64.b64encode(chunk).decode('utf-8')
-            add_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/add-block', headers=headers, json={"handle": handle, "data": encoded_chunk}, verify=False)
-            if add_response.status_code != 200:
-                raise Exception(f"Failed to add block to DBFS: {add_response.text}")
-        # Close file
-        close_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/close', headers=headers, json={"handle": handle}, verify=False)
-        if close_response.status_code != 200:
-            raise Exception(f"Failed to close DBFS file: {close_response.text}")
-        # Create table
-        query = f"CREATE TABLE IF NOT EXISTS lifestyle_mlops_catalog.processed.preprocessed_data USING DELTA AS SELECT * FROM csv.`dbfs:{dbfs_path}`"
-        sql_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/sql/statements', headers=headers, json={"warehouse_id": "7bb142c4f4ff862e", "query": {"query_text": query}}, verify=False)
-        if sql_response.status_code != 200:
-            raise Exception(f"Failed to create table: {sql_response.text}")
-        logging.info("Data uploaded to Databricks catalog.")
+        import tempfile
+        import os
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            train_parquet = os.path.join(temp_dir, f"train_{ts}.parquet")
+            test_parquet = os.path.join(temp_dir, f"test_{ts}.parquet")
+
+            train_data.to_parquet(train_parquet, index=False)
+            test_data.to_parquet(test_parquet, index=False)
+
+            # Upload to DBFS using improved chunked approach
+            headers = {'Authorization': f'Bearer {os.environ["DATABRICKS_TOKEN"]}'}
+            base_url = 'https://dbc-935124bd-e5fd.cloud.databricks.com'
+
+            def upload_file_to_dbfs(local_path, dbfs_path):
+                """Upload file to DBFS with improved error handling."""
+                with open(local_path, 'rb') as f:
+                    file_size = os.path.getsize(local_path)
+                    logging.info(f"Uploading {file_size} bytes to {dbfs_path}")
+
+                    # Create file handle
+                    create_url = f"{base_url}/api/2.0/dbfs/create"
+                    create_payload = {"path": dbfs_path, "overwrite": True}
+
+                    create_response = requests.post(create_url, headers=headers, json=create_payload, verify=False)
+                    if create_response.status_code != 200:
+                        raise Exception(f"Failed to create DBFS file {dbfs_path}: {create_response.status_code} - {create_response.text}")
+
+                    handle = create_response.json()['handle']
+
+                    # Upload in chunks (smaller chunks for reliability)
+                    chunk_size = 512 * 1024  # 512KB chunks
+                    uploaded = 0
+
+                    while True:
+                        chunk = f.read(chunk_size)
+                        if not chunk:
+                            break
+
+                        encoded_chunk = base64.b64encode(chunk).decode('utf-8')
+
+                        add_url = f"{base_url}/api/2.0/dbfs/add-block"
+                        add_payload = {"handle": handle, "data": encoded_chunk}
+
+                        add_response = requests.post(add_url, headers=headers, json=add_payload, verify=False)
+                        if add_response.status_code != 200:
+                            raise Exception(f"Failed to add block to {dbfs_path}: {add_response.status_code} - {add_response.text}")
+
+                        uploaded += len(chunk)
+                        logging.info(f"Uploaded {uploaded}/{file_size} bytes")
+
+                    # Close file
+                    close_url = f"{base_url}/api/2.0/dbfs/close"
+                    close_response = requests.post(close_url, headers=headers, json={"handle": handle}, verify=False)
+                    if close_response.status_code != 200:
+                        raise Exception(f"Failed to close DBFS file {dbfs_path}: {close_response.status_code} - {close_response.text}")
+
+                    logging.info(f"Successfully uploaded {dbfs_path}")
+                    return dbfs_path
+
+            # Upload train and test sets
+            dbfs_train_path = f"/tmp/lifestyle_mlops/train_{ts}.parquet"
+            dbfs_test_path = f"/tmp/lifestyle_mlops/test_{ts}.parquet"
+
+            upload_file_to_dbfs(train_parquet, dbfs_train_path)
+            upload_file_to_dbfs(test_parquet, dbfs_test_path)
+
+            # Create tables using SQL with retry logic
+            def execute_sql_query(query, description):
+                """Execute SQL query with retry logic."""
+                sql_url = f"{base_url}/api/2.0/sql/statements"
+                payload = {
+                    "warehouse_id": "7bb142c4f4ff862e",
+                    "query": {"query_text": query},
+                    "wait_timeout": "30s"
+                }
+
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        response = requests.post(sql_url, headers=headers, json=payload, verify=False, timeout=60)
+                        if response.status_code == 200:
+                            result = response.json()
+                            if result.get('status', {}).get('state') == 'SUCCEEDED':
+                                logging.info(f"Successfully executed: {description}")
+                                return result
+                            else:
+                                logging.warning(f"SQL query not succeeded: {result}")
+                        else:
+                            logging.warning(f"SQL query failed (attempt {attempt+1}): {response.status_code} - {response.text}")
+                    except Exception as e:
+                        logging.warning(f"SQL query error (attempt {attempt+1}): {str(e)}")
+
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)  # Exponential backoff
+
+                raise Exception(f"Failed to execute SQL after {max_retries} attempts: {description}")
+
+            # Create train table
+            train_query = f"""
+            CREATE TABLE IF NOT EXISTS lifestyle_mlops_catalog.processed.train_set
+            USING DELTA
+            LOCATION 'dbfs:{dbfs_train_path}'
+            """
+            execute_sql_query(train_query, "Create train_set table")
+
+            # Create test table
+            test_query = f"""
+            CREATE TABLE IF NOT EXISTS lifestyle_mlops_catalog.processed.test_set
+            USING DELTA
+            LOCATION 'dbfs:{dbfs_test_path}'
+            """
+            execute_sql_query(test_query, "Create test_set table")
+
+            # Enable change data feed for both tables
+            cdf_train_query = "ALTER TABLE lifestyle_mlops_catalog.processed.train_set SET TBLPROPERTIES (delta.enableChangeDataFeed = true)"
+            execute_sql_query(cdf_train_query, "Enable CDF for train_set")
+
+            cdf_test_query = "ALTER TABLE lifestyle_mlops_catalog.processed.test_set SET TBLPROPERTIES (delta.enableChangeDataFeed = true)"
+            execute_sql_query(cdf_test_query, "Enable CDF for test_set")
+
+        logging.info("Data uploaded to Databricks catalog successfully.")
 
     def create_summary(**context):
         ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
