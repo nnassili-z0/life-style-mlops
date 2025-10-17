@@ -229,13 +229,26 @@ with DAG(
             content = f.read()
         # Compress the content
         compressed = gzip.compress(content)
-        encoded = base64.b64encode(compressed).decode('utf-8')
         headers = {'Authorization': f'Bearer {os.environ["DATABRICKS_TOKEN"]}'}
         ts = context['execution_date'].strftime("%Y%m%d_%H%M%S")
         dbfs_path = f"/lifestyle_mlops/preprocessed_{ts}.csv.gz"
-        put_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/put', headers=headers, json={"path": dbfs_path, "contents": encoded, "overwrite": True}, verify=False)
-        if put_response.status_code != 200:
-            raise Exception(f"Failed to upload to DBFS: {put_response.text}")
+        # Create file handle
+        create_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/create', headers=headers, json={"path": dbfs_path, "overwrite": True}, verify=False)
+        if create_response.status_code != 200:
+            raise Exception(f"Failed to create DBFS file: {create_response.text}")
+        handle = create_response.json()['handle']
+        # Upload in chunks
+        chunk_size = 1024 * 1024  # 1MB chunks
+        for i in range(0, len(compressed), chunk_size):
+            chunk = compressed[i:i + chunk_size]
+            encoded_chunk = base64.b64encode(chunk).decode('utf-8')
+            add_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/add-block', headers=headers, json={"handle": handle, "data": encoded_chunk}, verify=False)
+            if add_response.status_code != 200:
+                raise Exception(f"Failed to add block to DBFS: {add_response.text}")
+        # Close file
+        close_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/dbfs/close', headers=headers, json={"handle": handle}, verify=False)
+        if close_response.status_code != 200:
+            raise Exception(f"Failed to close DBFS file: {close_response.text}")
         # Create table
         query = f"CREATE TABLE IF NOT EXISTS lifestyle_mlops_catalog.processed.preprocessed_data USING DELTA AS SELECT * FROM csv.`dbfs:{dbfs_path}`"
         sql_response = requests.post('https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/sql/statements', headers=headers, json={"warehouse_id": "7bb142c4f4ff862e", "query": {"query_text": query}}, verify=False)
