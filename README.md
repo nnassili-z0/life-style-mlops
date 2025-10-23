@@ -22,8 +22,8 @@ The pipeline includes:
 - **Compute**: Databricks (serverless)  
 - **Containerization**: Docker Compose  
 - **Data Source**: Kaggle API  
-- **Monitoring**: Prometheus + Grafana (target for metrics and dashboards)
-- **Monitoring**: Prometheus + Grafana  
+- **Monitoring**: Prometheus + Grafana + StatsD (fully configured metrics and dashboards)
+- **Infrastructure**: PostgreSQL database, Node Exporter, cAdvisor  
 
 ## 🚀 Setup Instructions
 1. Clone the repository:
@@ -39,7 +39,10 @@ The pipeline includes:
    docker-compose -f docker-compose-airflow.yml up --build
    ```
 4. Access Airflow UI at [localhost:8080](http://localhost:8080) (admin/admin)
-5. Trigger the `mlops_level1_pipeline` DAG to run the full pipeline
+5. **Access Monitoring Stack**:
+   - **Grafana**: [localhost:3000](http://localhost:3000) (admin/admin) - View Airflow and system metrics dashboards
+   - **Prometheus**: [localhost:9090](http://localhost:9090) - Raw metrics collection
+6. Trigger the `mlops_level1_pipeline` DAG to run the full pipeline
 
 ## 📊 Pipeline Stages
 The Airflow DAG automates the following steps:
@@ -105,6 +108,9 @@ with open('ai_playground_data/lifestyle_mlops_complete_run/dataset_summary.json'
 **📖 Full Documentation**: See `ai_playground_data/lifestyle_mlops_complete_run/README_AI_PLAYGROUND.md` for complete AI experimentation guide.
 
 ## 🔧 Recent Updates
+- **Register Model Task Enhancement**: Added robust error handling with null checks, token validation, and graceful failure for MLflow connectivity issues. Pipeline now completes successfully even when external services are unavailable.
+- **Monitoring Stack Fixes**: Corrected StatsD port configuration (8125/udp) and fixed Grafana dashboard JSON structure to prevent provisioning failures.
+- **Pipeline Reliability**: Enhanced error resilience across the entire MLOps pipeline with comprehensive logging and failure handling.
 - **Enhanced Pipeline Architecture**: Complete MLOps Level 1 pipeline with archiving and cloud integration features.
 - **Improved Categorical Encoding**: Comprehensive encoding for all string columns (Gender, exercise types, etc.) to prevent training failures.
 - **Optimized Model Training**: RandomForest Regressor with data sampling (max 5000 rows) and reduced estimators (50) for faster, reliable training.
