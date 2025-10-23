@@ -148,3 +148,7 @@ with open('ai_playground_data/lifestyle_mlops_complete_run/dataset_summary.json'
 
 ## 📦 Requirements
 Install with `pip install -r requirements.txt`. Key packages: airflow, pandas, scikit-learn, mlflow, pandera, requests.
+
+## 📊 Diagram of the REPO
+<img width="7248" height="1212" alt="diagram" src="https://github.com/user-attachments/assets/c722ea16-b6f0-403e-aa88-91c88811547d" />
+
