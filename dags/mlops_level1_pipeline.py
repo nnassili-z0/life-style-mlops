@@ -198,6 +198,11 @@ with DAG(
         logging.info("Registering model with MLflow...")
         model_path = context['ti'].xcom_pull(task_ids='train_model')
         eval_results = context['ti'].xcom_pull(task_ids='evaluate_model')
+
+        # Configure MLflow to skip SSL verification for Databricks
+        import os
+        os.environ['MLFLOW_TRACKING_INSECURE_TLS'] = 'true'
+
         mlflow.set_tracking_uri("https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/mlflow")
         mlflow.set_experiment("life-style-mlops")
         with mlflow.start_run():
