@@ -1,67 +1,21 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "Airflow Monitoring",
-    "tags": ["airflow", "monitoring"],
-    "timezone": "browser",
-    "panels": [
-      {
-        "id": 1,
-        "title": "DAG Run Status",
-        "type": "table",
-        "targets": [
-          {
-            "expr": "airflow_dag_run_duration{state=~\"success|failed\"}",
-            "legendFormat": "{{dag_id}} - {{state}}"
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 0
-        }
-      },
-      {
-        "id": 2,
-        "title": "Task Instance Status",
-        "type": "bargauge",
-        "targets": [
-          {
-            "expr": "airflow_task_instance_created",
-            "legendFormat": "Created"
-          },
-          {
-            "expr": "airflow_task_instance_success",
-            "legendFormat": "Success"
-          },
-          {
-            "expr": "airflow_task_instance_failed",
-            "legendFormat": "Failed"
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 0
-        }
-      }
-    ],
-    "time": {
-      "from": "now-1h",
-      "to": "now"
-    },
-    "timepicker": {},
-    "templating": {
-      "list": []
-    },
-    "annotations": {
-      "list": []
-    },
-    "refresh": "5s",
-    "schemaVersion": 27,
-    "version": 0,
-    "links": []
-  }
+  "title": "Airflow Monitoring",
+  "tags": ["airflow"],
+  "timezone": "browser",
+  "panels": [],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "refresh": "5s",
+  "schemaVersion": 27,
+  "version": 0,
+  "links": []
 }
