@@ -74,8 +74,92 @@ services:
       - airflow-init
     restart: always
 
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mlops_prometheus
+    volumes:
+      - ./resources/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - airflow_net
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mlops_grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./resources/grafana/provisioning:/etc/grafana/provisioning
+      - ./resources/grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3000:3000"
+    networks:
+      - airflow_net
+    depends_on:
+      - prometheus
+    restart: always
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: mlops_node_exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    networks:
+      - airflow_net
+    restart: always
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: mlops_cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8081:8080"
+    networks:
+      - airflow_net
+    restart: always
+
+  statsd-exporter:
+    image: prom/statsd-exporter:latest
+    container_name: life-style-mlops-statsd-1
+    ports:
+      - "9102:9102"
+      - "8125:8125/udp"
+    networks:
+      - airflow_net
+    restart: always
+
 networks:
   airflow_net:
 
 volumes:
   postgres-db-volume:
+  prometheus_data:
+  grafana_data:
