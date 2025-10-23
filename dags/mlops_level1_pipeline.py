@@ -303,12 +303,31 @@ with DAG(
                     logging.info(f"Successfully uploaded {dbfs_path}")
                     return dbfs_path
 
-            # Upload train and test sets
-            dbfs_train_path = f"/tmp/lifestyle_mlops/train_{ts}.parquet"
-            dbfs_test_path = f"/tmp/lifestyle_mlops/test_{ts}.parquet"
+            # Upload train and test sets to DBFS (using /dbfs/ prefix for direct access)
+            dbfs_train_path = f"dbfs:/tmp/lifestyle_mlops/train_{ts}.parquet"
+            dbfs_test_path = f"dbfs:/tmp/lifestyle_mlops/test_{ts}.parquet"
 
-            upload_file_to_dbfs(train_parquet, dbfs_train_path)
-            upload_file_to_dbfs(test_parquet, dbfs_test_path)
+            # Attempt to upload files to DBFS, but don't fail the pipeline if DBFS is disabled
+            upload_success = True
+            try:
+                upload_file_to_dbfs(train_parquet, dbfs_train_path)
+                logging.info("Successfully uploaded train set to DBFS")
+            except Exception as e:
+                logging.warning(f"Failed to upload train set to DBFS (this may be due to workspace security settings): {str(e)}")
+                upload_success = False
+
+            try:
+                upload_file_to_dbfs(test_parquet, dbfs_test_path)
+                logging.info("Successfully uploaded test set to DBFS")
+            except Exception as e:
+                logging.warning(f"Failed to upload test set to DBFS (this may be due to workspace security settings): {str(e)}")
+                upload_success = False
+
+            if not upload_success:
+                logging.warning("DBFS upload failed - skipping table creation. Pipeline will continue with local files only.")
+                return  # Exit early, but don't fail the task
+
+            # Create tables using SQL with retry logic (only if upload succeeded)
 
             # Create tables using SQL with retry logic
             def execute_sql_query(query, description):
