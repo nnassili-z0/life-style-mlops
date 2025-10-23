@@ -203,7 +203,8 @@ with DAG(
         import os
         os.environ['MLFLOW_TRACKING_INSECURE_TLS'] = 'true'
         # Set Databricks token for MLflow authentication
-        os.environ['DATABRICKS_TOKEN'] = os.environ.get('DATABRICKS_TOKEN', '')
+        databricks_token = os.environ.get('DATABRICKS_TOKEN', '')
+        os.environ['MLFLOW_TRACKING_TOKEN'] = databricks_token
 
         mlflow.set_tracking_uri("https://dbc-935124bd-e5fd.cloud.databricks.com/api/2.0/mlflow")
         mlflow.set_experiment("life-style-mlops")
