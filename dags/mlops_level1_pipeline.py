@@ -207,7 +207,7 @@ with DAG(
         os.environ['MLFLOW_TRACKING_TOKEN'] = databricks_token
 
         mlflow.set_tracking_uri("https://dbc-935124bd-e5fd.cloud.databricks.com")
-        mlflow.set_experiment("life-style-mlops")
+        mlflow.set_experiment("/Users/naoufal/life-style-mlops")
         with mlflow.start_run():
             model = joblib.load(model_path)
             mlflow.log_artifact(model_path, artifact_path="model")
