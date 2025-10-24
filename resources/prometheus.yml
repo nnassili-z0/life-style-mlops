@@ -11,9 +11,17 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'airflow'
+  - job_name: 'airflow-webserver'
     static_configs:
       - targets: ['webserver:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'airflow-scheduler'
+    static_configs:
+      - targets: ['scheduler:8793']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
 
   - job_name: 'node-exporter'
     static_configs:
@@ -26,3 +34,4 @@ scrape_configs:
   - job_name: 'statsd-exporter'
     static_configs:
       - targets: ['statsd-exporter:9102']
+    scrape_interval: 15s

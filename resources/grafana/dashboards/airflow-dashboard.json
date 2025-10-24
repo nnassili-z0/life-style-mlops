@@ -1,21 +1,293 @@
 {
-  "title": "Airflow Monitoring",
-  "tags": ["airflow"],
-  "timezone": "browser",
-  "panels": [],
-  "time": {
-    "from": "now-1h",
-    "to": "now"
-  },
-  "timepicker": {},
-  "templating": {
-    "list": []
-  },
-  "annotations": {
-    "list": []
-  },
-  "refresh": "5s",
-  "schemaVersion": 27,
-  "version": 0,
-  "links": []
+  "dashboard": {
+    "title": "Airflow MLOps Pipeline Monitoring",
+    "tags": ["airflow", "mlops", "monitoring"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "MLOps Pipeline Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "statsd_airflow_dag_run_duration_sum{dag_id=\"mlops_level1_pipeline\"}",
+            "legendFormat": "Total Runtime"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 300 },
+                { "color": "red", "value": 600 }
+              ]
+            },
+            "unit": "s"
+          }
+        },
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 }
+      },
+      {
+        "id": 2,
+        "title": "Task Success Rate",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "(statsd_airflow_ti_success_total / (statsd_airflow_ti_success_total + statsd_airflow_ti_fail_total)) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "max": 100,
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "yellow", "value": 80 },
+                { "color": "green", "value": 95 }
+              ]
+            },
+            "unit": "percent"
+          }
+        },
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 }
+      },
+      {
+        "id": 3,
+        "title": "Active DAG Runs",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "statsd_airflow_dag_processing_total",
+            "legendFormat": "Active Runs"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 }
+      },
+      {
+        "id": 4,
+        "title": "Task Execution Timeline",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(statsd_airflow_ti_success_total[5m])",
+            "legendFormat": "Tasks Completed/min"
+          },
+          {
+            "expr": "rate(statsd_airflow_ti_fail_total[5m])",
+            "legendFormat": "Tasks Failed/min"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+      },
+      {
+        "id": 5,
+        "title": "System Resources - CPU",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "100 - (avg by (instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+            "legendFormat": "CPU Usage %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100,
+            "min": 0
+          }
+        },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+      },
+      {
+        "id": 6,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+            "legendFormat": "Memory Usage %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100,
+            "min": 0
+          }
+        },
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 }
+      },
+      {
+        "id": 7,
+        "title": "Container CPU Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=~\"airflow.*\"}[5m])) by (container_label_com_docker_compose_service) * 100",
+            "legendFormat": "{{container_label_com_docker_compose_service}} CPU %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent"
+          }
+        },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 }
+      },
+      {
+        "id": 8,
+        "title": "Airflow Scheduler Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"airflow-scheduler\"}",
+            "legendFormat": "Scheduler"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } }, "type": "value" }
+            ]
+          }
+        },
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 }
+      },
+      {
+        "id": 9,
+        "title": "Database Connections",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "statsd_airflow_pool_open_connections",
+            "legendFormat": "Open Connections"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 }
+      },
+      {
+        "id": 10,
+        "title": "Task Queue Status",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "statsd_airflow_executor_queued_tasks",
+            "legendFormat": "Queued"
+          },
+          {
+            "expr": "statsd_airflow_executor_running_tasks",
+            "legendFormat": "Running"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": 0 },
+                { "color": "yellow", "value": 2 },
+                { "color": "red", "value": 5 }
+              ]
+            }
+          }
+        },
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 }
+      },
+      {
+        "id": 11,
+        "title": "Disk I/O Operations",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(node_disk_reads_completed_total[5m])",
+            "legendFormat": "Read Ops/s"
+          },
+          {
+            "expr": "rate(node_disk_writes_completed_total[5m])",
+            "legendFormat": "Write Ops/s"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 }
+      },
+      {
+        "id": 12,
+        "title": "Network Traffic",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(node_network_receive_bytes_total[5m])",
+            "legendFormat": "Receive bytes/s"
+          },
+          {
+            "expr": "rate(node_network_transmit_bytes_total[5m])",
+            "legendFormat": "Transmit bytes/s"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          }
+        },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 }
+      },
+      {
+        "id": 13,
+        "title": "Container Memory Usage",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "container_memory_usage_bytes{container_label_com_docker_compose_service=~\"airflow.*\"}",
+            "legendFormat": "{{container_label_com_docker_compose_service}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          }
+        },
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 }
+      },
+      {
+        "id": 14,
+        "title": "Pipeline Health Check",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=~\"airflow.*|prometheus|grafana\"}",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } }, "type": "value" }
+            ]
+          }
+        },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "templating": {
+      "list": []
+    },
+    "annotations": {
+      "list": []
+    },
+    "refresh": "30s",
+    "schemaVersion": 27,
+    "version": 0,
+    "links": []
+  }
 }
