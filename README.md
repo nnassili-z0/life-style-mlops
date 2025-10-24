@@ -40,8 +40,8 @@ The pipeline includes:
    ```
 4. Access Airflow UI at [localhost:8080](http://localhost:8080) (admin/admin)
 5. **Access Monitoring Stack**:
-   - **Grafana**: [localhost:3000](http://localhost:3000) (admin/admin) - View Airflow and system metrics dashboards
-   - **Prometheus**: [localhost:9090](http://localhost:9090) - Raw metrics collection
+   - **Grafana**: [localhost:3000](http://localhost:3000) (admin/admin) - View comprehensive MLOps pipeline dashboards
+   - **Prometheus**: [localhost:9090](http://localhost:9090) - Raw metrics collection and querying
 6. Trigger the `mlops_level1_pipeline` DAG to run the full pipeline
 
 ## 📊 Pipeline Stages
@@ -106,6 +106,33 @@ with open('ai_playground_data/lifestyle_mlops_complete_run/dataset_summary.json'
 ```
 
 **📖 Full Documentation**: See `ai_playground_data/lifestyle_mlops_complete_run/README_AI_PLAYGROUND.md` for complete AI experimentation guide.
+
+## 📊 Monitoring & Observability
+
+The pipeline includes comprehensive monitoring with Prometheus and Grafana for real-time observability:
+
+### 🎯 **Grafana Dashboard Features**
+- **Pipeline Health**: DAG run status, task success rates, and execution timelines
+- **System Resources**: CPU, memory, disk I/O, and network traffic monitoring
+- **Container Metrics**: Individual service resource usage (Airflow, PostgreSQL, etc.)
+- **Task Monitoring**: Queue lengths, database connections, and task execution rates
+- **Service Health**: Real-time status of all pipeline components
+
+### 📈 **Key Metrics Monitored**
+- DAG processing rates and durations
+- Task instance states (success, failed, running)
+- System resource utilization
+- Container performance metrics
+- Database connection pools
+- Network and disk I/O operations
+
+### 🔍 **Access Points**
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Prometheus**: http://localhost:9090
+- **Node Exporter**: http://localhost:9100
+- **cAdvisor**: http://localhost:8081
+
+**Dashboard refreshes every 30 seconds** for real-time pipeline monitoring during DAG execution.
 
 ## 🔧 Recent Updates
 - **Register Model Task Enhancement**: Added robust error handling with null checks, token validation, and graceful failure for MLflow connectivity issues. Pipeline now completes successfully even when external services are unavailable.
